@@ -1,17 +1,18 @@
 import pygame
-import time
 
 #Player size = x 50, y 60
 
 # variables
 # -------------------------
 level = "level_1"
-b_size = 100
-p_size_x = 50
-p_size_y = 60
-track_width = 4000
+b_size = 75
+p_size_x = (b_size / 5) * 4
+p_size_y = b_size
+track_width = 10000
+track_height = 1000
 fall_jump = 0
-move_scene = 0
+move_scene_x = 0
+move_scene_y = 0
 mode = "fall"
 side = "r"
 checkpoints = 0
@@ -32,48 +33,53 @@ class Object:
 
 
     def MakeRect(self, surface):
-        return surface.get_rect(bottomleft=(self.x_position - move_scene, self.y_position))
+        return surface.get_rect(bottomleft=(self.x_position - move_scene_x, self.y_position - move_scene_y))
 
 
     def ObjectRight(self, surface):
         TF = False
-        for i in touch_objects:
+        for i in set(touch_objects) - set(fly_plats) - set(jump_pads) - set(expand_plats):
             if surface.right == i.MakeRect(i.default).left and surface.bottom > i.MakeRect(i.default).top and surface.top < i.MakeRect(i.default).bottom:
+                TF = True
+        for i in fly_plats + jump_pads + expand_plats:
+            if surface.right == i.MakeRect(i.default).left and surface.bottom > i.MakeRect(i.default).top and surface.top < i.MakeRect(i.default).bottom and i.work:
                 TF = True
         return TF
 
     def ObjectLeft(self, surface):
         TF = False
-        for i in touch_objects:
+        for i in set(touch_objects) - set(fly_plats) - set(jump_pads) - set(expand_plats):
             if surface.left == i.MakeRect(i.default).right and surface.bottom > i.MakeRect(i.default).top and surface.top < i.MakeRect(i.default).bottom:
+                TF = True
+        for i in fly_plats + jump_pads + expand_plats:
+            if surface.left == i.MakeRect(i.default).right and surface.bottom > i.MakeRect(i.default).top and surface.top < i.MakeRect(i.default).bottom  and i.work:
                 TF = True
         return TF
 
     def ObjectUp(self, surface):
         TF = False
-        for i in touch_objects:
+        for i in set(touch_objects) - set(fly_plats) - set(jump_pads) - set(expand_plats):
             if surface.top == i.MakeRect(i.default).bottom and surface.left < i.MakeRect(i.default).right and surface.right > i.MakeRect(i.default).left:
+                TF = True
+        for i in fly_plats + jump_pads + expand_plats:
+            if surface.top == i.MakeRect(i.default).bottom and surface.left < i.MakeRect(i.default).right and surface.right > i.MakeRect(i.default).left  and i.work:
                 TF = True
         return TF
 
     def ObjectDown(self, surface, width = 0):
         TF = False
-        for i in touch_objects:
+        for i in set(touch_objects) - set(fly_plats) - set(jump_pads) - set(expand_plats):
             if surface.bottom == i.MakeRect(i.default).top and surface.left + width < i.MakeRect(i.default).right and surface.right + width > i.MakeRect(i.default).left:
+                TF = True
+        for i in fly_plats + jump_pads + expand_plats:
+            if surface.bottom == i.MakeRect(i.default).top and surface.left + width < i.MakeRect(i.default).right and surface.right + width > i.MakeRect(i.default).left  and i.work:
                 TF = True
         return TF
 
 
-    # def PushOut(self, surface):
-    #     y_push = 0
-    #     for i in touch_objects:
-    #         if surface.bottom > i.MakeRect(i.default).top and surface.top < i.MakeRect(i.default).bottom and surface.left < i.MakeRect(i.default).right and surface.right > i.MakeRect(i.default).left:
-    #             y_push = i.MakeRect(i.default).top
-    #     return y_push
-
 
     def FallRight(self, surface):
-        FallRightTF = self.ObjectDown(surface, surface.width)
+        # FallRightTF = self.ObjectDown(surface, surface.width)
         return self.ObjectDown(surface, surface.width)
 
     def FallLeft(self, surface):
@@ -82,6 +88,172 @@ class Object:
         #     if surface.bottom == i.MakeRect(i.default).top and surface.left - b_size < i.MakeRect(i.default).right and surface.right - b_size > i.MakeRect(i.default).left:
         #         FallLeftTF = False
         return self.ObjectDown(surface, -surface.width)
+
+
+class Player(Object):
+    """
+    Character that will move on screen
+    """
+    def __init__(self, x_pos, y_pos):
+        super().__init__(x_pos, y_pos)
+
+        self.transparency = 0
+
+        self.default = pygame.image.load("stand_1.png")
+        self.default = pygame.transform.scale(self.default, (p_size_x, p_size_y))
+
+        self.stand_1 = pygame.image.load("stand_1.png")
+        self.stand_1 = pygame.transform.scale(self.stand_1, (p_size_x, p_size_y))
+        self.stand_2 = pygame.image.load("stand_2.png")
+        self.stand_2 = pygame.transform.scale(self.stand_2, (p_size_x, p_size_y))
+        self.standing = [self.stand_1 for _ in range(10)] + [self.stand_2 for _ in range(10)]
+
+        self.run_1 = pygame.image.load("run_1.png")
+        self.run_1 = pygame.transform.scale(self.run_1, (p_size_x, p_size_y))
+        self.run_2 = pygame.image.load("run_2.png")
+        self.run_2 = pygame.transform.scale(self.run_2, (p_size_x, p_size_y))
+        self.run_3 = pygame.image.load("run_3.png")
+        self.run_3 = pygame.transform.scale(self.run_3, (p_size_x, p_size_y))
+        self.run_4 = pygame.image.load("run_4.png")
+        self.run_4 = pygame.transform.scale(self.run_4, (p_size_x, p_size_y))
+        self.run_5 = pygame.image.load("run_5.png")
+        self.run_5 = pygame.transform.scale(self.run_5, (p_size_x, p_size_y))
+        self.run_6 = pygame.image.load("run_6.png")
+        self.run_6 = pygame.transform.scale(self.run_6, (p_size_x, p_size_y))
+        self.run_7 = pygame.image.load("run_7.png")
+        self.run_7 = pygame.transform.scale(self.run_7, (p_size_x, p_size_y))
+        self.run_8 = pygame.image.load("run_8.png")
+        self.run_8 = pygame.transform.scale(self.run_8, (p_size_x, p_size_y))
+        self.running = [self.run_1, self.run_2, self.run_3, self.run_4, self.run_5, self.run_6, self.run_7, self.run_8]
+
+        self.jump = pygame.image.load("jump.png")
+        self.jump = pygame.transform.scale(self.jump, (p_size_x, p_size_y))
+
+        self.wall_jump = pygame.image.load("wall_jump.png")
+        self.wall_jump = pygame.transform.scale(self.wall_jump, (p_size_x, p_size_y))
+
+        self.fall = pygame.image.load("fall.png")
+        self.fall = pygame.transform.scale(self.fall, (p_size_x, p_size_y))
+
+        self.apples = 0
+        self.bananas = 0
+        self.cherries = 0
+        self.oranges = 0
+
+    def MakePlayerRect(self):
+        """Returns a rect of the image"""
+        self.default_rect = self.default.get_rect(bottomleft=(self.x_position, self.y_position))
+        return self.default_rect
+
+
+    def WallJumpRightTF(self):
+        TF = False
+        for i in touch_objects:
+            if self.MakePlayerRect().right == i.MakeRect(i.default).left and self.MakePlayerRect().bottom < i.MakeRect(i.default).bottom and self.MakePlayerRect().top > i.MakeRect(i.default).top:
+                TF = True
+        return TF
+
+    def WallJumpLeftTF(self):
+        TF = False
+        for i in touch_objects:
+            if self.MakePlayerRect().left == i.MakeRect(i.default).right and self.MakePlayerRect().bottom < i.MakeRect(i.default).bottom and self.MakePlayerRect().top > i.MakeRect(i.default).top:
+                TF = True
+        return TF
+
+
+    def MoveRight(self, num = 8):
+        """Moves to the right"""
+        for i in range(num):
+            global move_scene_x
+            if not self.ObjectRight(self.MakePlayerRect()):
+                if self.MakePlayerRect().centerx < 650:  #move_scene == 0 and
+                    self.x_position += 1
+                elif move_scene_x == track_width - 1300 and self.MakePlayerRect().centerx >= 650 and self.MakePlayerRect().right != 1300:
+                    self.x_position += 1
+                elif move_scene_x < track_width - 1300:
+                    move_scene_x += 1
+
+    def MoveLeft(self, num = 8):
+        """Moves to the left"""
+        for i in range(num):
+            global move_scene_x
+            if not self.ObjectLeft(self.MakePlayerRect()):
+                if self.MakePlayerRect().centerx > 650:
+                    self.x_position -= 1
+                elif move_scene_x == 0 and self.MakePlayerRect().centerx <= 650 and self.MakePlayerRect().left != 0:
+                    self.x_position -= 1
+                elif move_scene_x > 0:
+                    move_scene_x -= 1
+
+
+    def Minus_Fall_Jump_Speed(self, num):
+        """
+        Changes the y position of player
+        :param num: fall_jump
+        :return: None
+        """
+        # global mode
+        global move_scene_y
+        for i in range(abs(num)):
+            # jump_pads[0].CheckJump()
+            if num < 0:
+                if not self.ObjectDown(self.MakePlayerRect()):
+                    check_die()
+                    # player_1.y_position += 1
+                    if self.MakePlayerRect().centery > 350:
+                        self.y_position += 1
+                    elif move_scene_y == 0 and self.MakePlayerRect().centery <= 350 and self.MakePlayerRect().bottom != 0:
+                        self.y_position += 1
+                    elif move_scene_y < 0:
+                        move_scene_y += 1
+
+
+            elif num > 0:
+                if not self.ObjectUp(self.MakePlayerRect()):
+                    # player_1.y_position -= 1
+                    if self.MakePlayerRect().centery > 350:  # move_scene == 0 and
+                        self.y_position -= 1
+                    elif move_scene_y == track_height - 700 and self.MakePlayerRect().centery <= 350 and self.MakePlayerRect().top != 700:
+                        self.x_position -= 1
+                    elif move_scene_y < track_height - 700:
+                        move_scene_y -= 1
+
+
+    def Change_Fall_Jump(self):
+        """Checks if Minus_Fall_Jump_Speed can be called"""
+        global fall_jump
+        if self.ObjectUp(self.MakePlayerRect()):
+            fall_jump = -1
+        if fall_jump <= 0 and self.ObjectDown(self.MakePlayerRect()):
+            fall_jump = 0
+        else:
+            self.Minus_Fall_Jump_Speed(fall_jump)
+            fall_jump -= 2
+
+
+    def Transparency(self):
+        if self.transparency < 255:
+            self.transparency += 10
+        else:
+            self.transparency = 255
+
+
+    def CheckFruit(self):
+        global fruits
+        for x in range(len(fruits)):
+                try:
+                    if player_1.MakePlayerRect().colliderect(fruits[x].MakeSelfRect()):
+                        if fruits[x].name == "a":
+                            self.apples += 1
+                        elif fruits[x].name == "b":
+                            self.bananas += 1
+                        elif fruits[x].name == "o":
+                            self.oranges += 1
+                        elif fruits[x].name == "c":
+                            self.cherries += 1
+                        fruits.pop(x)
+                except:
+                    pass
 
 
 class Ground(Object):
@@ -109,11 +281,6 @@ class BrickBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
-
         self.default = pygame.image.load("Block_Brick.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size))
 
@@ -127,11 +294,6 @@ class SilverBlock(Object):
 
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
-
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
 
         self.default = pygame.image.load("Block_Silver.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size))
@@ -147,11 +309,6 @@ class GoldBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
-
         self.default = pygame.image.load("Block_Gold.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size))
 
@@ -166,11 +323,6 @@ class BrownBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
-
         self.default = pygame.image.load("Block_Brown.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size))
 
@@ -184,11 +336,6 @@ class OrangeBlock(Object):
 
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
-
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
 
         self.default = pygame.image.load("Block_Orange.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size))
@@ -206,11 +353,6 @@ class SmallSilverBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
-
         self.default = pygame.image.load("Block_Silver.png")
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
 
@@ -224,11 +366,6 @@ class SmallGoldBlock(Object):
 
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
-
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
 
         self.default = pygame.image.load("Block_Gold.png")
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
@@ -244,11 +381,6 @@ class SmallBrownBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
-
         self.default = pygame.image.load("Block_Brown.png")
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
 
@@ -262,11 +394,6 @@ class SmallOrangeBlock(Object):
 
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
-
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
 
         self.default = pygame.image.load("Block_Orange.png")
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
@@ -284,11 +411,6 @@ class GoldThickPlat(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
-
         self.default = pygame.image.load("Plat_Thick_Gold.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 3))
 
@@ -302,11 +424,6 @@ class SilverThickPlat(Object):
 
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
-
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
 
         self.default = pygame.image.load("Plat_Thick_Silver.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 3))
@@ -322,11 +439,6 @@ class BrownThickPlat(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
-
         self.default = pygame.image.load("Plat_Thick_Brown.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 3))
 
@@ -340,11 +452,6 @@ class OrangeThickPlat(Object):
 
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
-
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
 
         self.default = pygame.image.load("Plat_Thick_Orange.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 3))
@@ -361,11 +468,6 @@ class GoldThinPlat(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
-
         self.default = pygame.image.load("Plat_Thin_Gold.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 10))
 
@@ -379,11 +481,6 @@ class SilverThinPlat(Object):
 
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
-
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
 
         self.default = pygame.image.load("Plat_Thin_Silver.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 10))
@@ -399,16 +496,12 @@ class WoodThinPlat(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.left_side_pos = self.x_position
-        self.right_side_pos = self.x_position + b_size
-        self.bottom_side_pos = self.y_position
-        self.top_side_pos = self.y_position - b_size
-
         self.default = pygame.image.load("Plat_Thin_Wood.png")
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 10))
 
     def MakeSelfRect(self):
         return self.MakeRect(self.default)
+
 
 
 class Checkpoint(Object):
@@ -441,132 +534,6 @@ class Checkpoint(Object):
                 checkpoints += 1
 
 
-class Player(Object):
-    """
-    Character that will move on screen
-    """
-    def __init__(self, x_pos, y_pos):
-        super().__init__(x_pos, y_pos)
-
-        self.transparency = 0
-
-        self.default = pygame.image.load("stand_1.png")
-        self.default = pygame.transform.scale(self.default, (50, 60))
-
-        self.stand_1 = pygame.image.load("stand_1.png")
-        self.stand_1 = pygame.transform.scale(self.stand_1, (50, 60))
-        self.stand_2 = pygame.image.load("stand_2.png")
-        self.stand_2 = pygame.transform.scale(self.stand_2, (50, 60))
-        self.standing = [self.stand_1 for _ in range(10)] + [self.stand_2 for _ in range(10)]
-
-        self.run_1 = pygame.image.load("run_1.png")
-        self.run_1 = pygame.transform.scale(self.run_1, (50, 60))
-        self.run_2 = pygame.image.load("run_2.png")
-        self.run_2 = pygame.transform.scale(self.run_2, (50, 60))
-        self.run_3 = pygame.image.load("run_3.png")
-        self.run_3 = pygame.transform.scale(self.run_3, (50, 60))
-        self.run_4 = pygame.image.load("run_4.png")
-        self.run_4 = pygame.transform.scale(self.run_4, (50, 60))
-        self.run_5 = pygame.image.load("run_5.png")
-        self.run_5 = pygame.transform.scale(self.run_5, (50, 60))
-        self.run_6 = pygame.image.load("run_6.png")
-        self.run_6 = pygame.transform.scale(self.run_6, (50, 60))
-        self.run_7 = pygame.image.load("run_7.png")
-        self.run_7 = pygame.transform.scale(self.run_7, (50, 60))
-        self.run_8 = pygame.image.load("run_8.png")
-        self.run_8 = pygame.transform.scale(self.run_8, (50, 60))
-        self.running = [self.run_1, self.run_2, self.run_3, self.run_4, self.run_5, self.run_6, self.run_7, self.run_8]
-
-        self.jump = pygame.image.load("jump.png")
-        self.jump = pygame.transform.scale(self.jump, (50, 60))
-
-        self.wall_jump = pygame.image.load("wall_jump.png")
-        self.wall_jump = pygame.transform.scale(self.wall_jump, (50, 60))
-
-        self.fall = pygame.image.load("fall.png")
-        self.fall = pygame.transform.scale(self.fall, (50, 60))
-
-    def MakePlayerRect(self):
-        """Returns a rect of the image"""
-        self.default_rect = self.default.get_rect(bottomleft=(self.x_position, self.y_position))
-        return self.default_rect
-
-
-    def WallJumpRightTF(self):
-        TF = False
-        for i in touch_objects:
-            if self.MakePlayerRect().right == i.MakeRect(i.default).left and self.MakePlayerRect().bottom < i.MakeRect(i.default).bottom and self.MakePlayerRect().top > i.MakeRect(i.default).top:
-                TF = True
-        return TF
-
-    def WallJumpLeftTF(self):
-        TF = False
-        for i in touch_objects:
-            if self.MakePlayerRect().left == i.MakeRect(i.default).right and self.MakePlayerRect().bottom < i.MakeRect(i.default).bottom and self.MakePlayerRect().top > i.MakeRect(i.default).top:
-                TF = True
-        return TF
-
-
-    def MoveRight(self, num = 5):
-        """Moves to the right"""
-        for i in range(num):
-            global move_scene
-            if not self.ObjectRight(self.MakePlayerRect()):
-                if self.MakePlayerRect().centerx < 650:  #move_scene == 0 and
-                    self.x_position += 1
-                elif move_scene == track_width - 1300 and self.MakePlayerRect().centerx >= 650 and self.MakePlayerRect().right != 1300:
-                    self.x_position += 1
-                elif move_scene < track_width - 1300:
-                    move_scene += 1
-
-    def MoveLeft(self, num = 5):
-        """Moves to the left"""
-        for i in range(num):
-            global move_scene
-            if not self.ObjectLeft(self.MakePlayerRect()):
-                if move_scene == 700 and self.MakePlayerRect().centerx > 650:
-                    self.x_position -= 1
-                elif move_scene == 0 and self.MakePlayerRect().centerx <= 650 and self.MakePlayerRect().left != 0:
-                    self.x_position -= 1
-                elif move_scene > 0:
-                    move_scene -= 1
-
-
-    def Minus_Fall_Jump_Speed(self, num):
-        """
-        Changes the y position of player
-        :param num: fall_jump
-        :return: None
-        """
-        global mode
-        for i in range(abs(num)):
-            if num < 0:
-                if not self.ObjectDown(self.MakePlayerRect()):
-                    check_die()
-                    player_1.y_position += 1
-            elif num > 0:
-                if not self.ObjectUp(self.MakePlayerRect()):
-                    player_1.y_position -= 1
-
-
-    def Change_Fall_Jump(self):
-        """Checks if Minus_Fall_Jump_Speed can be called"""
-        global fall_jump
-        if self.ObjectUp(self.MakePlayerRect()):
-            fall_jump = -1
-        if fall_jump <= 0 and self.ObjectDown(self.MakePlayerRect()):
-            fall_jump = 0
-        else:
-            self.Minus_Fall_Jump_Speed(fall_jump)
-            fall_jump -= 2
-
-
-    def Transparency(self):
-        if self.transparency < 255:
-            self.transparency += 10
-        else:
-            self.transparency = 255
-
 
 class Snake(Object):
     def __init__(self, x_pos, y_pos):
@@ -583,7 +550,7 @@ class Snake(Object):
         self.snake_3 = pygame.image.load("snake_4.png")
         self.snake_3 = pygame.transform.scale(self.snake_3, (40, 20))
 
-        self.snaking = [self.default, self.default, self.default, self.default, self.default, self.snake_1, self.snake_1, self.snake_1, self.snake_1, self.snake_1, self.snake_2, self.snake_2, self.snake_2, self.snake_2, self.snake_2, self.snake_3, self.snake_3, self.snake_3, self.snake_3, self.snake_3]
+        self.going = [self.default, self.default, self.default, self.default, self.default, self.snake_1, self.snake_1, self.snake_1, self.snake_1, self.snake_1, self.snake_2, self.snake_2, self.snake_2, self.snake_2, self.snake_2, self.snake_3, self.snake_3, self.snake_3, self.snake_3, self.snake_3]
 
     def MakeSelfRect(self):
         return self.MakeRect(self.default)
@@ -593,7 +560,7 @@ class Snake(Object):
         if self.side == "r":
             for i in range(3):
                 if not self.ObjectRight(self.MakeSelfRect()) and self.FallRight(self.MakeSelfRect()):
-                    if move_scene == track_width - 1300 and self.MakeSelfRect().right == 1300:
+                    if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
                         self.side = "l"
                     else:
                         self.x_position += 1
@@ -603,7 +570,7 @@ class Snake(Object):
         if self.side == "l":
             for i in range(3):
                 if not self.ObjectLeft(self.MakeSelfRect()) and self.FallLeft(self.MakeSelfRect()):
-                    if move_scene == track_width - 1300 and self.MakeSelfRect().right == 1300:
+                    if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
                         self.side = "r"
                     else:
                         self.x_position -= 1
@@ -636,7 +603,7 @@ class Mushroom(Object):
         self.mushroom_7 = pygame.image.load("mushroom_8.png")
         self.mushroom_7 = pygame.transform.scale(self.mushroom_7, (45, 50))
 
-        self.mushrooming = [self.default, self.default,
+        self.going = [self.default, self.default,
                         self.mushroom_1, self.mushroom_1,
                         self.mushroom_2, self.mushroom_2,
                         self.mushroom_3, self.mushroom_3,
@@ -652,7 +619,7 @@ class Mushroom(Object):
         if self.side == "r":
             for i in range(4):
                 if not self.ObjectRight(self.MakeSelfRect()) and self.FallRight(self.MakeSelfRect()):
-                    if move_scene == track_width - 1300 and self.MakeSelfRect().right == 1300:
+                    if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
                         self.side = "l"
                     else:
                         self.x_position += 1
@@ -662,7 +629,83 @@ class Mushroom(Object):
         if self.side == "l":
             for i in range(4):
                 if not self.ObjectLeft(self.MakeSelfRect()) and self.FallLeft(self.MakeSelfRect()):
-                    if move_scene == track_width - 1300 and self.MakeSelfRect().right == 1300:
+                    if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
+                        self.side = "r"
+                    else:
+                        self.x_position -= 1
+                else:
+                    self.side = "r"
+                # if move_scene != 0 or self.MakeSelfRect().left != 0:
+                # else:
+                #     self.side = "r"
+
+class Horse(Object):
+    def __init__(self, x_pos, y_pos):
+        super().__init__(x_pos, y_pos)
+
+        self.mode = "run"
+
+        self.side = "r"
+
+        self.run_1 = pygame.image.load("horse_run_1.png")
+        self.run_1 = pygame.transform.scale(self.run_1, (186, 138))
+        self.run_2 = pygame.image.load("horse_run_2.png")
+        self.run_2 = pygame.transform.scale(self.run_2, (186, 138))
+        self.run_3 = pygame.image.load("horse_run_3.png")
+        self.run_3 = pygame.transform.scale(self.run_3, (186, 138))
+        self.run_4 = pygame.image.load("horse_run_4.png")
+        self.run_4 = pygame.transform.scale(self.run_4, (186, 138))
+        self.run_5 = pygame.image.load("horse_run_5.png")
+        self.run_5 = pygame.transform.scale(self.run_5, (186, 138))
+        self.run_6 = pygame.image.load("horse_run_6.png")
+        self.run_6 = pygame.transform.scale(self.run_6, (186, 138))
+
+        self.hit_1 = pygame.image.load("horse_hit_1.png")
+        self.hit_1 = pygame.transform.scale(self.hit_1, (186, 138))
+        self.hit_1 = pygame.image.load("horse_hit_1.png")
+        self.hit_1 = pygame.transform.scale(self.hit_1, (186, 138))
+        self.hit_1 = pygame.image.load("horse_hit_1.png")
+        self.hit_1 = pygame.transform.scale(self.hit_1, (186, 138))
+        self.hit_1 = pygame.image.load("horse_hit_1.png")
+        self.hit_1 = pygame.transform.scale(self.hit_1, (186, 138))
+        self.hit_1 = pygame.image.load("horse_hit_1.png")
+        self.hit_1 = pygame.transform.scale(self.hit_1, (186, 138))
+
+        self.default = self.run_1
+
+        self.run = [self.run_1] * 3 + [self.run_2] * 3 + [self.run_3] * 3 + [self.run_4] * 3 + [self.run_5] * 3 + [self.run_6] * 3
+
+    def ChangeDefault(self):
+        if self.side == "r":
+            self.default = pygame.transform.flip(self.run[0], True, False)
+        else:
+            self.default = self.run[0]
+
+        self.run.append(self.run[0])
+        self.run.pop(0)
+
+    def MakeSelfRect(self):
+        return self.default.get_rect(bottomleft=(self.x_position - move_scene_x, self.y_position))
+
+    def CheckMode(self):
+        if self.side == "r":
+            pass
+
+    def Move(self):
+        if self.side == "r":
+            for i in range(2):
+                if not self.ObjectRight(self.MakeSelfRect()) and self.FallRight(self.MakeSelfRect()):
+                    if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
+                        self.side = "l"
+                    else:
+                        self.x_position += 1
+                else:
+                    self.side = "l"
+
+        if self.side == "l":
+            for i in range(2):
+                if not self.ObjectLeft(self.MakeSelfRect()) and self.FallLeft(self.MakeSelfRect()):
+                    if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
                         self.side = "r"
                     else:
                         self.x_position -= 1
@@ -673,13 +716,20 @@ class Mushroom(Object):
                 #     self.side = "r"
 
 
+
 class FlyPlat(Object):
-    def __init__(self, x_pos, y_pos, pos_1, pos_2, fly):
+    def __init__(self, x_pos, y_pos, pos_1, pos_2, fly, num = 5):
         super().__init__(x_pos, y_pos)
 
-        self.pos_1 = pos_1
-        self.pos_2 = pos_2
+        self.position_1 = (x_pos * b_size) - b_size
+        self.position_2 = 700 - ((y_pos * b_size) - b_size)
+
+        self.work = False
+
+        self.transparency = 125
+
         self.fly = fly
+        self.num = num
 
         if fly == "RightLeft":
             # self.fly_pos = (fly_pos * b_size) - b_size
@@ -698,66 +748,308 @@ class FlyPlat(Object):
         self.fly_plat_3 = pygame.image.load("Plat_Fly_4.png")
         self.fly_plat_3 = pygame.transform.scale(self.fly_plat_3, (b_size, 30))
 
-        self.FlyPlating = [self.default, self.default, self.fly_plat_1, self.fly_plat_1,
+        self.going = [self.default, self.default, self.fly_plat_1, self.fly_plat_1,
                            self.fly_plat_2, self.fly_plat_2, self.fly_plat_3, self.fly_plat_3]
 
     def MakeSelfRect(self):
         return self.MakeRect(self.default)
 
-    def Move(self, num = 5):
-        global fall_jump
-        for x in range(num):
-            if self.fly == "UpDown":
-                if self.direction == "u":
-                    if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
-                        if player_1.ObjectUp(player_1.MakePlayerRect()):
-                            self.direction = "d"
-                            reset()
-                else:
+    def Move(self):
+        if self.work:
+            global fall_jump
+            for x in range(self.num):
+                if self.fly == "UpDown":
                     if self.MakeSelfRect().bottom == player_1.MakePlayerRect().top and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
-                        self.direction = "u"
-                    if self.MakeSelfRect().bottom == player_1.MakePlayerRect().top and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
-                        if player_1.ObjectDown(player_1.MakePlayerRect()):
+                        fall_jump = -1
+                    if self.direction == "u":
+                        if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
+                            if player_1.ObjectUp(player_1.MakePlayerRect()):
+                                self.direction = "d"
+                                reset()
+                    else:
+                        if self.MakeSelfRect().bottom == player_1.MakePlayerRect().top and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
                             self.direction = "u"
-                            reset()
+                            fall_jump = -1
+                        if self.MakeSelfRect().bottom == player_1.MakePlayerRect().top and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
+                            if player_1.ObjectDown(player_1.MakePlayerRect()):
+                                self.direction = "u"
+                                reset()
+
+                if self.fly == "RightLeft":
+                    if self.direction == "r":
+                        if self.MakeSelfRect().left + move_scene_x != self.position_2:
+                            self.x_position += 1
+                            if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
+                                player_1.MoveRight(1)
+                                # player_1.x_position += 1
+                        else:
+                            self.direction = "l"
+
+                    if self.direction == "l":
+                        if self.MakeSelfRect().left + move_scene_x != self.position_1:
+                            self.x_position -= 1
+                            if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
+                                player_1.MoveLeft(1)
+                                # player_1.x_position -= 1
+                        else:
+                            self.direction = "r"
+                else:
+                    if self.direction == "d":
+                        if self.MakeSelfRect().bottom != self.position_2:
+                            if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
+                                player_1.y_position += 1
+                                fall_jump = 0
+                            self.y_position += 1
+                        else:
+                            self.direction = "u"
+
+                    if self.direction == "u":
+                        if self.MakeSelfRect().bottom != self.position_1:
+                            if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
+                                player_1.y_position -= 1
+                                fall_jump = 0
+                            self.y_position -= 1
+                        else:
+                            self.direction = "d"
+
+class JumpPad(Object):
+
+    def __init__(self, x_pos, y_pos):
+        super().__init__(x_pos, y_pos)
+
+        self.work = False
+
+        self.transparency = 125
+
+        self.jump_pad_1 = pygame.image.load("jump_pad_1.png")
+        self.jump_pad_1 = pygame.transform.scale(self.jump_pad_1, (b_size, b_size / 2))
+
+        self.jump_pad_2 = pygame.image.load("jump_pad_2.png")
+        self.jump_pad_2 = pygame.transform.scale(self.jump_pad_2, (b_size, (b_size / 5) * 3))
+
+        self.jump_pad_3 = pygame.image.load("jump_pad_3.png")
+        self.jump_pad_3 = pygame.transform.scale(self.jump_pad_3, (b_size, b_size))
+
+        self.jump_pad_4 = pygame.image.load("jump_pad_4.png")
+        self.jump_pad_4 = pygame.transform.scale(self.jump_pad_4, (b_size, b_size * 1.1))
+
+        self.jump_pad_5 = pygame.image.load("jump_pad_5.png")
+        self.jump_pad_5 = pygame.transform.scale(self.jump_pad_5, (b_size, b_size * 1.1))
+
+        self.default = self.jump_pad_1
+
+    def MakeSelfImage(self):
+        return self.default
+
+    def MakeSelfRect(self):
+        return self.MakeRect(self.default)
+
+    def CheckJump(self):
+        if self.work:
+            global fall_jump
+            if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left and self.default == self.jump_pad_1:
+                self.default = self.jump_pad_4
+                fall_jump = 35
+
+            elif self.default == self.jump_pad_1:
+                pass
+            elif self.default == self.jump_pad_2:
+                self.default = self.jump_pad_1
+            elif self.default == self.jump_pad_3:
+                self.default = self.jump_pad_2
+            elif self.default == self.jump_pad_4:
+                self.default = self.jump_pad_3
+
+class ExpandPlat(Object):
+    """
+    Class that represents ground and grass
+    """
+
+    def __init__(self, x_pos, y_pos):
+        super().__init__(x_pos, y_pos)
+
+        self.y_position -= b_size - b_size / 5
+
+        self.work = False
+
+        self.transparency = 125
+
+        self.original = pygame.image.load("Plat_Thin_Wood.png")
+
+        self.default = pygame.transform.scale(self.original, (50, b_size / 5))
+
+        self.i = 50
+
+    def MakeSelfRect(self):
+        return self.default.get_rect(bottomleft=(self.x_position - move_scene_x, self.y_position - move_scene_y))
+
+    def CheckWork(self):
+        if self.work:
+            self.default = pygame.transform.scale(self.original, (self.i, b_size / 5))
+            if self.work:
+                for i in range(5):
+                    if not self.ObjectRight(self.MakeSelfRect()):
+                        self.i += 1
 
 
-            if self.fly == "RightLeft":
-                if self.direction == "r":
-                    if self.MakeSelfRect().left + move_scene != self.pos_2:
-                        self.x_position += 1
-                        if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
-                            player_1.MoveRight(1)
-                            # player_1.x_position += 1
-                    else:
-                        self.direction = "l"
 
-                if self.direction == "l":
-                    if self.MakeSelfRect().left + move_scene != self.pos_1:
-                        self.x_position -= 1
-                        if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
-                            player_1.MoveLeft(1)
-                            # player_1.x_position -= 1
-                    else:
-                        self.direction = "r"
-            else:
-                if self.direction == "d":
-                    if self.MakeSelfRect().bottom != self.pos_2:
-                        if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
-                            player_1.y_position += 1
-                            fall_jump = 0
-                        self.y_position += 1
-                    else:
-                        self.direction = "u"
+class Spike(Object):
+    """
+    Class that represents ground and grass
+    """
 
-                if self.direction == "u":
-                    if self.MakeSelfRect().bottom != self.pos_1:
-                        if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
-                            player_1.y_position -= 1
-                            fall_jump = 0
-                        self.y_position -= 1
-                    else:
-                        self.direction = "d"
+    def __init__(self, x_pos, y_pos):
+        super().__init__(x_pos, y_pos)
+
+        self.default = pygame.image.load("Spike.webp")
+        self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
+
+    def MakeSelfRect(self):
+        return self.MakeRect(self.default)
+
+class Saw(Object):
+
+    def __init__(self, x_pos, y_pos):
+        super().__init__(x_pos, y_pos)
+
+        self.saw_1 = pygame.image.load("Saw_1.png")
+        self.saw_1 = pygame.transform.scale(self.saw_1, (b_size , b_size))
+        self.saw_2 = pygame.image.load("Saw_2.png")
+        self.saw_2 = pygame.transform.scale(self.saw_2, (b_size , b_size))
+        self.saw_3 = pygame.image.load("Saw_3.png")
+        self.saw_3 = pygame.transform.scale(self.saw_3, (b_size , b_size))
+        self.saw_4 = pygame.image.load("Saw_4.png")
+        self.saw_4 = pygame.transform.scale(self.saw_4, (b_size , b_size))
+        self.saw_5 = pygame.image.load("Saw_5.png")
+        self.saw_5 = pygame.transform.scale(self.saw_5, (b_size , b_size))
+        self.saw_6 = pygame.image.load("Saw_6.png")
+        self.saw_6 = pygame.transform.scale(self.saw_6, (b_size , b_size))
+        self.saw_7 = pygame.image.load("Saw_7.png")
+        self.saw_7 = pygame.transform.scale(self.saw_7, (b_size , b_size))
+        self.saw_8 = pygame.image.load("Saw_8.png")
+        self.saw_8 = pygame.transform.scale(self.saw_8, (b_size , b_size))
+
+        self.going = [self.saw_1, self.saw_2, self.saw_3, self.saw_4, self.saw_5, self.saw_6, self.saw_7, self.saw_8]
+
+        self.default = self.saw_1
+
+    def MakeSelfRect(self):
+        return self.MakeRect(self.default)
+
+class Siked_Ball(Object):
+    """
+    Class that represents ground and grass
+    """
+
+    def __init__(self, x_pos, y_pos):
+        super().__init__(x_pos, y_pos)
+
+        self.fall = False
+
+        self.gravity_pull = 0
+
+        self.default = pygame.image.load("SpikedBall.png")
+        self.default = pygame.transform.scale(self.default, (b_size, b_size))
+
+    def MakeSelfRect(self):
+        return self.MakeRect(self.default)
+
+    def CheckFall(self):
+        if not self.fall:
+            if player_1.MakePlayerRect().right >= self.MakeSelfRect().left and not self.ObjectDown(self.MakeSelfRect()):
+                self.fall = True
+        if self.ObjectDown(self.MakeSelfRect()):
+            self.fall = False
+        if self.fall:
+            self.gravity_pull += 4
+        for i in range(self.gravity_pull):
+            if not self.ObjectDown(self.MakeSelfRect()):
+                self.y_position += 1
+
+class Fire(Object):
+
+    def __init__(self, x_pos, y_pos):
+        super().__init__(x_pos, y_pos)
+
+        self.stage_off = pygame.image.load("fire_stage_off.png")
+        self.stage_off = pygame.transform.scale(self.stage_off, (b_size , b_size))
+
+        self.stage_on = pygame.image.load("fire_stage_on.png")
+        self.stage_on = pygame.transform.scale(self.stage_on, (b_size , b_size))
+
+        self.fire_1 = pygame.image.load("fire_1.png")
+        self.fire_1 = pygame.transform.scale(self.fire_1, (b_size , b_size))
+        self.fire_2 = pygame.image.load("fire_2.png")
+        self.fire_2 = pygame.transform.scale(self.fire_2, (b_size , b_size))
+        self.fire_3 = pygame.image.load("fire_3.png")
+        self.fire_3 = pygame.transform.scale(self.fire_3, (b_size , b_size))
+
+        self.going = [self.fire_1, self.fire_1, self.fire_2, self.fire_2, self.fire_3, self.fire_3]
+
+        self.default = self.stage_off
+
+        self.delay = 1000
+        self.delay_after = 3000
+
+        self.start = 0
+        self.over = 0
+
+    def MakeSelfRect(self):
+        return self.MakeRect(self.default)
+
+    def MakeSelfRectFire(self):
+        return self.fire_1.get_rect(bottomleft=(self.x_position - move_scene_x, self.y_position - b_size))
+
+    def CheckOn(self):
+        self.now = pygame.time.get_ticks()
+        if self.MakeSelfRect().top == player_1.MakePlayerRect().bottom and self.MakeSelfRect().left < player_1.MakePlayerRect().right and self.MakeSelfRect().right > player_1.MakePlayerRect().left:
+            if self.start == 0:
+                self.start = pygame.time.get_ticks()
+        # else:
+        #     if self.over == 0:
+        #         self.over = pygame.time.get_ticks()
+
+        if self.over + self.delay_after <= self.now and self.over != 0:
+            self.start = 0
+            self.over = 0
+
+        if self.start + self.delay <= self.now and self.start != 0:
+            self.default = self.stage_on
+            if self.over == 0:
+                self.over = pygame.time.get_ticks()
+        else:
+            self.default = self.stage_off
+            self.over = 0
+
+
+
+class Fruit(Object):
+    """
+    Class that represents ground and grass
+    """
+
+    def __init__(self, x_pos, y_pos, nm):
+        super().__init__(x_pos, y_pos)
+
+        self.x_position += b_size / 3
+        self.y_position -= b_size / 3
+
+        self.name = nm
+
+        if  self.name == "a":
+            self.default = pygame.image.load("Apple.png")
+        elif  self.name == "b":
+            self.default = pygame.image.load("Banana.png")
+        elif  self.name == "o":
+            self.default = pygame.image.load("Orange.png")
+        elif  self.name == "c":
+            self.default = pygame.image.load("Cherry.png")
+
+        self.default = pygame.transform.scale(self.default, (b_size / 3, b_size / 3))
+
+    def MakeSelfRect(self):
+        return self.MakeRect(self.default)
+
 
 
 player_1 = Player(0, 0)
@@ -780,8 +1072,17 @@ def blit():
         else:
             screen.blit(i.default, i.MakeSelfRect())
 
-    for x in set(touch_objects) - set(list_grs) - set(fly_plats):
+    for x in set(touch_objects) - set(list_grs) - set(fly_plats) - set(jump_pads) - set(expand_plats):
         screen.blit(x.default, x.MakeRect(x.default))
+
+    for x in spikes + spiked_balls:
+        screen.blit(x.default, x.MakeSelfRect())
+
+    for x in fires:
+        if x.default == x.stage_on:
+            screen.blit(x.going[0], x.MakeSelfRectFire())
+            x.going.append(x.going[0])
+            x.going.pop(0)
 
 
     if check_p_1.checkpoint_TF:
@@ -791,26 +1092,45 @@ def blit():
     else:
         screen.blit(check_p_1.no_checkpoint, check_p_1.MakeRect(check_p_1.no_checkpoint))
 
-    for x in snakes:
+    for x in snakes + mushrooms:
         if x.side == "l":
-            screen.blit(x.snaking[0], x.MakeSelfRect())
+            screen.blit(x.going[0], x.MakeSelfRect())
         if x.side == "r":
-            screen.blit(pygame.transform.flip(x.snaking[0], True, False), x.MakeSelfRect())
-        x.snaking.append(x.snaking[0])
-        x.snaking.pop(0)
+            screen.blit(pygame.transform.flip(x.going[0], True, False), x.MakeSelfRect())
+        x.going.append(x.going[0])
+        x.going.pop(0)
 
-    for x in mushrooms:
-        if x.side == "l":
-            screen.blit(x.mushrooming[0], x.MakeSelfRect())
-        if x.side == "r":
-            screen.blit(pygame.transform.flip(x.mushrooming[0], True, False), x.MakeSelfRect())
-        x.mushrooming.append(x.mushrooming[0])
-        x.mushrooming.pop(0)
+    for x in horses:
+        screen.blit(x.default, x.MakeSelfRect())
+
+    for x in saws:
+        screen.blit(x.going[0], x.MakeSelfRect())
+        x.going.append(x.going[0])
+        x.going.pop(0)
+
 
     for x in fly_plats:
-        screen.blit(x.FlyPlating[0], x.MakeSelfRect())
-        x.FlyPlating.append(x.FlyPlating[0])
-        x.FlyPlating.pop(0)
+        if x.work:
+            screen.blit(x.going[0], x.MakeSelfRect())
+        else:
+            x.going[0].set_alpha(x.transparency)
+            screen.blit(x.going[0], x.MakeSelfRect())
+        x.going.append(x.going[0])
+        x.going.pop(0)
+
+    for x in jump_pads:
+        if x.work:
+            screen.blit(x.default, x.MakeRect(x.default))
+        else:
+            x.default.set_alpha(x.transparency)
+            screen.blit(x.default, x.MakeRect(x.default))
+
+    for x in expand_plats:
+        if x.work:
+            screen.blit(x.default, x.MakeRect(x.default))
+        else:
+            x.default.set_alpha(x.transparency)
+            screen.blit(x.default, x.MakeRect(x.default))
 
 
     if find_mode() == "stand":
@@ -855,6 +1175,9 @@ def blit():
         else:
             screen.blit(pygame.transform.flip(player_1.wall_jump, True, False), player_1.MakePlayerRect())
 
+
+    for x in fruits:
+        screen.blit(x.default, x.MakeSelfRect())
 
     screen.blit(go_back_button, go_back_button_rect)
     screen.blit(restart_button, restart_button_rect)
@@ -927,21 +1250,31 @@ def find_mode():
 def start_play():
     global checkpoints
     global fall_jump
-    global move_scene
+    global move_scene_x
+    global move_scene_y
     global mode
     global side
     global check_p_1
     global player_1
     global snakes
     global mushrooms
+    global horses
     global fly_plats
+    global jump_pads
+    global spikes
+    global saws
+    global expand_plats
+    global spiked_balls
+    global fires
+    global fruits
     global list_grs
     global touch_objects
 
     # variables
     # -------------------------
     fall_jump = 0
-    move_scene = 0
+    move_scene_x = 0
+    move_scene_y = 0
     mode = "fall"
     side = "r"
     checkpoints = 0
@@ -1002,7 +1335,6 @@ def start_play():
     small_silver_b1 = SmallSilverBlock(14, 5)
 
     small_gold_b1 = SmallGoldBlock(14, 5.5)
-    small_gold_b2 = SmallGoldBlock(4, 6.5)
 
     small_orange_b1 = SmallOrangeBlock(14.5, 5)
 
@@ -1016,31 +1348,59 @@ def start_play():
     snake_1 = Snake(4, 2)
     snake_2 = Snake(7, 2)
     snake_3 = Snake(10, 3)
-    snakes = [snake_1, snake_2, snake_3]
+    snakes = []
 
     mushroom_1 = Mushroom(7, 2)
     mushroom_2 = Mushroom(12, 3)
-    mushrooms = [mushroom_1, mushroom_2]
+    mushrooms = []
 
-    fly_plat_1 = FlyPlat(3, 6, 100, 600,"RightLeft")
-    fly_plat_2 = FlyPlat(1, 3, 100, 600,"UpDown")
-    fly_plats = [fly_plat_1, fly_plat_2]
+    horse_1 = Horse(7, 2)
+    horses = []
+
+    # fly_plat_1 = FlyPlat(3, 5, 100, 600,"RightLeft")
+    fly_plat_2 = FlyPlat(1, 8, 0, 100,"UpDown")
+    fly_plat_1 = FlyPlat(3, 5, 2, 6,"RightLeft")
+    fly_plats = [fly_plat_1]  #fly_plat_1, fly_plat_2
+
+    jump_pad_1 = JumpPad(17, 2)
+    jump_pads = [jump_pad_1]
+
+    spike_1 = Spike(4, 5)
+    spikes = []
+
+    saw_1 = Saw(8, 5)
+    saws = []
+
+    expand_plat_1 = ExpandPlat(4, 2)
+    expand_plats = [expand_plat_1]
+
+    spiked_ball_1 = Siked_Ball(4, 7)
+    spiked_balls = []
+
+    fire_1 = Fire(10, 3)
+    fires = []
+
+    fruit_1 = Fruit(6, 2, "a")
+    fruit_2 = Fruit(7, 2, "b")
+    fruit_3 = Fruit(8, 2, "c")
+    fruit_4 = Fruit(9, 2, "o")
+    fruits = [fruit_1, fruit_2, fruit_3, fruit_4]
 
     touch_objects = [gr_1, gr_2, gr_3, gr_4, gr_5, gr_6, gr_7, gr_8, gr_9, gr_10, gr_11, gr_12, gr_13, gr_14, gr_15, gr_16, gr_17, gr_18,
-                     brick_1, orange_b1, silver_b1, gold_b1, brown_b1, gold_thin_plat1, silver_thin_plat1,
-                     wood_thin_plat1, gold_thick_plat1, silver_thick_plat1, brown_thick_plat1, orange_thick_plat1,
-                     small_silver_b1, small_gold_b1, small_brown_b1, small_orange_b1, fly_plat_1, fly_plat_2, small_gold_b2]
+                     # brick_1, orange_b1, silver_b1, gold_b1, brown_b1, gold_thin_plat1, silver_thin_plat1,
+                     # wood_thin_plat1, gold_thick_plat1, silver_thick_plat1, brown_thick_plat1, orange_thick_plat1,
+                     small_silver_b1, small_gold_b1, small_brown_b1, small_orange_b1, jump_pad_1, fire_1, fly_plat_1, expand_plat_1]
 
 def reset():
-    global move_scene
+    global move_scene_x
     global player_1
     global fall_jump
     if checkpoints == 0:
-        move_scene = 0
+        move_scene_x = 0
         player_1.x_position = 50
         player_1.y_position = 600 - 1
     if checkpoints == 1:
-        move_scene = 560
+        move_scene_x = 560
         player_1.x_position = 650 - p_size_x / 2
         player_1.y_position = 500 - 1
     fall_jump = 0
@@ -1050,9 +1410,9 @@ def check_die():
     global fall_jump
     global mushrooms
 
-    # for x in snakes:
-    #     if player_1.MakePlayerRect().colliderect(x.MakeRect(x.default)):
-    #         reset()
+    for x in snakes:
+        if player_1.MakePlayerRect().colliderect(x.MakeRect(x.default)):
+            reset()
 
     for x in range(len(mushrooms)):
         try:
@@ -1068,6 +1428,14 @@ def check_die():
                 mushrooms.pop(x)
             # elif player_1.MakePlayerRect().colliderect(mushrooms[x].MakeRect(mushrooms[x].default)):
             #     reset()
+
+    for x in spikes + saws + spiked_balls:
+        if player_1.MakePlayerRect().colliderect(x.MakeSelfRect()):
+            reset()
+
+    for x in fires:
+        if player_1.MakePlayerRect().colliderect(x.MakeSelfRectFire()) and x.default == x.stage_on:
+            reset()
 
     if player_1.y_position > 700:
         reset()
@@ -1116,6 +1484,7 @@ while True:
         clock.tick(70)
 
     while level == "level_1":
+        # print(move_scene_x, move_scene_y)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -1129,8 +1498,23 @@ while True:
             x.Move()
         for x in mushrooms:
             x.Move()
+        for x in horses:
+            x.ChangeDefault()
+            x.Move()
+
         for x in fly_plats:
             x.Move()
+
+        for x in jump_pads:
+            x.CheckJump()
+        for x in expand_plats:
+            x.CheckWork()
+        for x in spiked_balls:
+            x.CheckFall()
+        for x in fires:
+            x.CheckOn()
+
+        player_1.CheckFruit()
 
         keys_pressed()
         check_p_1.CheckPoint()
@@ -1140,4 +1524,4 @@ while True:
         blit()
 
         pygame.display.update()
-        clock.tick(70)
+        clock.tick(60)
