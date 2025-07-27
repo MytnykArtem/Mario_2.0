@@ -439,6 +439,8 @@ class SmallSilverBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
+        self.y_position -= 1
+
         self.default = pygame.image.load("Block_Silver.png")
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
 
@@ -452,6 +454,8 @@ class SmallGoldBlock(Object):
 
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
+
+        self.y_position -= 1
 
         self.default = pygame.image.load("Block_Gold.png")
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
@@ -467,6 +471,8 @@ class SmallBrownBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
+        self.y_position -= 1
+
         self.default = pygame.image.load("Block_Brown.png")
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
 
@@ -480,6 +486,8 @@ class SmallOrangeBlock(Object):
 
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
+
+        self.y_position -= 1
 
         self.default = pygame.image.load("Block_Orange.png")
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
@@ -1347,7 +1355,7 @@ class Fire(Object):
 
         self.default = self.stage_off
 
-        self.delay = 1000
+        self.delay = 1300
         self.delay_after = 3000
 
         self.start = 0
@@ -1763,16 +1771,18 @@ def start_play():
     move_scene_y = 0
     mode = "fall"
     side = "r"
-    checkpoints = 0
+    checkpoints = 1
 
     # -------------------------
 
     list_grs = [Ground(1, 1),
                 Ground(2, 1),
                 Ground(3, 1),
+
                 Ground(1, 2),
                 Ground(2, 2),
                 Ground(3, 2),
+
                 Ground(4, 1),
                 Ground(5, 1),
                 Ground(6, 1),
@@ -1968,7 +1978,59 @@ def start_play():
                 Ground(74, 1),
 
                 Ground(75, 1),
+
+                Ground(110, 1),
+
+                Ground(111, 3),
+                Ground(111, 2),
+                Ground(111, 1),
+
+                Ground(112, 4),
+                Ground(112, 3),
+                Ground(112, 2),
+                Ground(112, 1),
+
+                Ground(113, 5),
+                Ground(113, 4),
+                Ground(113, 3),
+                Ground(113, 2),
+                Ground(113, 1),
+
+                Ground(114, 6),
+                Ground(114, 5),
+                Ground(114, 4),
+                Ground(114, 3),
+                Ground(114, 2),
+                Ground(114, 1),
+
+                Ground(115, 6),
+                Ground(115, 5),
+                Ground(115, 4),
+                Ground(115, 3),
+                Ground(115, 2),
+                Ground(115, 1),
+
+                Ground(116, 5),
+                Ground(117, 5),
+                Ground(118, 5),
+
+                Ground(1, 5),
                 ]
+
+    for i in list_grs:
+        No_Blocks_Down = False
+        for x in list_grs:
+            if i.MakeSelfRect().bottom == x.MakeSelfRect().top and i.MakeSelfRect().left == x.MakeSelfRect().left:
+                No_Blocks_Down = False
+        if No_Blocks_Down:
+            for m in range((((700 - i.y_position) + b_size) // b_size)): #self.y_position = 700 - ((y_pos * b_size) - b_size)
+                # break_out = False
+                # for x in list_grs:
+                #     if i.x_position == x.MakeSelfRect().left and 700 - ((m * b_size) - b_size) == x.MakeSelfRect().top + 5:
+                #         break_out = True
+                # if break_out:
+                #     break
+                list_grs.append(Ground(((i.x_position + b_size) // b_size), m)) # ((i.x_position + b_size) // b_size)
 
     list_grounds_decide = []
     for i in list_grs:
@@ -1982,33 +2044,52 @@ def start_play():
             list_grounds_decide.append("ground")
 
 
-    plats_thick = [SilverThickPlat(7, 8),
-                   SilverThickPlat(6, 8),
+    plats = [SilverThickPlat(7, 8),
+            SilverThickPlat(6, 8),
 
-                   SilverThickPlat(13, 10),
-                   SilverThickPlat(14, 10),
+            SilverThickPlat(13, 10),
+            SilverThickPlat(14, 10),
 
-                   SilverThickPlat(15, 13),
-                   SilverThickPlat(16, 13),
+            SilverThickPlat(15, 13),
+            SilverThickPlat(16, 13),
 
-                   SilverThickPlat(27, 13),
-                   SilverThickPlat(28, 13),
-                   SilverThickPlat(29, 13),
+            SilverThickPlat(27, 13),
+            SilverThickPlat(28, 13),
+            SilverThickPlat(29, 13),
 
-                   SilverThickPlat(23, 6),
-                   SilverThickPlat(24, 6),
-                   SilverThickPlat(25, 6),
+            SilverThickPlat(23, 6),
+            SilverThickPlat(24, 6),
+            SilverThickPlat(25, 6),
 
-                   OrangeThickPlat(89, 12),
-                   OrangeThickPlat(90, 12),
-                   OrangeThickPlat(89, 16),
-                   OrangeThickPlat(90, 16),
+            OrangeThickPlat(89, 12),
+            OrangeThickPlat(90, 12),
+            OrangeThickPlat(89, 16),
+            OrangeThickPlat(90, 16),
 
-                   OrangeThickPlat(92, 14),
-                   OrangeThickPlat(93, 14),
-                   OrangeThickPlat(92, 18),
-                   OrangeThickPlat(93, 18),
-                   ]
+            OrangeThickPlat(93, 14),
+            OrangeThickPlat(94, 14),
+            OrangeThickPlat(93, 18),
+            OrangeThickPlat(94, 18),
+
+            SilverThinPlat(98, 18),
+            SilverThinPlat(99, 18),
+            SilverThinPlat(100, 18),
+             SilverThinPlat(101, 18),
+             SilverThinPlat(102, 18),
+             SilverThinPlat(103, 18),
+             SilverThinPlat(104, 18),
+             SilverThinPlat(105, 18),
+             SilverThinPlat(106, 18),
+
+             BrownThickPlat(108, 15),
+             BrownThickPlat(109, 15),
+
+             BrownThickPlat(110, 12),
+             BrownThickPlat(111, 12),
+
+             BrownThickPlat(112, 9),
+             BrownThickPlat(113, 9),
+            ]
 
     list_blocks = [GoldBlock(40, 5),
                    GoldBlock(41, 5),
@@ -2046,6 +2127,9 @@ def start_play():
                    SmallOrangeBlock(72, 4),
                    SmallOrangeBlock(73, 3),
                    SmallOrangeBlock(74, 2),
+
+                   SilverBlock(98, 18),
+                   SilverBlock(107, 18),
                    ]
 
 
@@ -2055,8 +2139,7 @@ def start_play():
     start_game_stage = StartGame(1.4, 2, 2)
     start_games = []
 
-    check_p_1 = Checkpoint(12, 3)
-    check_ps = []
+    check_ps = [Checkpoint(73, 9)]
 
     end_game_1 = EndGame(15, 2)
     end_games = []
@@ -2119,7 +2202,7 @@ def start_play():
               Fruit(52, 7, "b"),
               Fruit(65, 4, "b"),
               Fruit(72, 9, "b"),
-              Fruit(92, 19, "c"),
+              Fruit(94, 19, "c"),
               ]
 
     coins = [Coin(1, 5),
@@ -2167,8 +2250,8 @@ def start_play():
              Coin(89, 17),
              Coin(90, 17),
 
-             Coin(92, 15),
              Coin(93, 15),
+             Coin(94, 15),
              ]
 
     snakes = [Snake(25, 4),
@@ -2189,7 +2272,7 @@ def start_play():
     box_1 = Box(5, 4)
     boxes = []
 
-    touch_objects = list_grs + plats_thick + fires + list_blocks
+    touch_objects = list_grs + plats + fires + list_blocks
 
 
     # touch_objects = [gr_1, gr_2, gr_3, gr_4, gr_5, gr_6, gr_7, gr_8, gr_9, gr_10, gr_11, gr_12, gr_13, gr_14, gr_15, gr_16, gr_17, gr_18,
@@ -2203,14 +2286,15 @@ def reset():
     global player_1
     global fall_jump
     if checkpoints == 0:
-        move_scene_x = 4000
+        move_scene_x = 0
         move_scene_y = 0
-        player_1.x_position = 100
-        player_1.y_position = 600 - 1
+        player_1.x_position = 75
+        player_1.y_position = 550 - 1
     if checkpoints == 1:
-        move_scene_x = 560
-        player_1.x_position = 650 - p_size_x / 2
-        player_1.y_position = 500 - 1
+        move_scene_x = 4770
+        move_scene_y = -288
+        player_1.x_position = 620
+        player_1.y_position = 388 - 1
     fall_jump = 0
     player_1.transparency = 0
 
@@ -2391,7 +2475,7 @@ while True:
         clock.tick(70)
 
     while level == "level_1":
-        # print(move_scene_y, player_1.y_position, move_scene_x, player_1.x_position)
+        #print(move_scene_x, move_scene_y, player_1.x_position, player_1.y_position)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
