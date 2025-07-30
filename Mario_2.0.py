@@ -1,10 +1,13 @@
 import pygame
 
+#python -m cProfile -o profile_data.prof Mario_2.0.py
+#snakeviz profile_data.prof
+
 #Player size = x 50, y 60
 
 # variables
 # -------------------------
-best_score = 1000000000
+best_score = [0, 0, 0]
 level = "level_1"
 b_size = 75
 b_size = round(b_size)
@@ -28,6 +31,52 @@ objects_on = True
 # p_size_x = player_size_x
 # p_size_y = player_size_y
 #-------------------------
+
+pygame.init()
+screen = pygame.display.set_mode((1300, 700))
+pygame.display.set_caption('Wonderland Escape')
+
+player_default = pygame.image.load("stand_1.png").convert_alpha()
+player_default = pygame.transform.scale(player_default, (p_size_x, p_size_y))
+player_stand_1 = pygame.image.load("stand_1.png").convert_alpha()
+player_stand_1 = pygame.transform.scale(player_stand_1, (p_size_x, p_size_y))
+player_stand_2 = pygame.image.load("stand_2.png").convert_alpha()
+player_stand_2 = pygame.transform.scale(player_stand_2, (p_size_x, p_size_y))
+player_standing = [player_stand_1 for _ in range(10)] + [player_stand_2 for _ in range(10)]
+player_run_1 = pygame.image.load("run_1.png").convert_alpha()
+player_run_1 = pygame.transform.scale(player_run_1, (p_size_x, p_size_y))
+player_run_2 = pygame.image.load("run_2.png").convert_alpha()
+player_run_2 = pygame.transform.scale(player_run_2, (p_size_x, p_size_y))
+player_run_3 = pygame.image.load("run_3.png").convert_alpha()
+player_run_3 = pygame.transform.scale(player_run_3, (p_size_x, p_size_y))
+player_run_4 = pygame.image.load("run_4.png").convert_alpha()
+player_run_4 = pygame.transform.scale(player_run_4, (p_size_x, p_size_y))
+player_run_5 = pygame.image.load("run_5.png").convert_alpha()
+player_run_5 = pygame.transform.scale(player_run_5, (p_size_x, p_size_y))
+player_run_6 = pygame.image.load("run_6.png").convert_alpha()
+player_run_6 = pygame.transform.scale(player_run_6, (p_size_x, p_size_y))
+player_run_7 = pygame.image.load("run_7.png").convert_alpha()
+player_run_7 = pygame.transform.scale(player_run_7, (p_size_x, p_size_y))
+player_run_8 = pygame.image.load("run_8.png").convert_alpha()
+player_run_8 = pygame.transform.scale(player_run_8, (p_size_x, p_size_y))
+player_running = [player_run_1, player_run_2, player_run_3, player_run_4, player_run_5, player_run_6, player_run_7, player_run_8]
+player_jump = pygame.image.load("jump.png").convert_alpha()
+player_jump = pygame.transform.scale(player_jump, (p_size_x, p_size_y))
+player_wall_jump = pygame.image.load("wall_jump.png").convert_alpha()
+player_wall_jump = pygame.transform.scale(player_wall_jump, (p_size_x, p_size_y))
+player_fall = pygame.image.load("fall.png").convert_alpha()
+player_fall = pygame.transform.scale(player_fall, (p_size_x, p_size_y))
+
+
+ground_grass = pygame.image.load("Grass.png").convert_alpha()
+ground_grass = pygame.transform.scale(ground_grass, (b_size, b_size))
+ground_default = pygame.image.load("Ground.png").convert_alpha()
+ground_default = pygame.transform.scale(ground_default, (b_size, b_size))
+
+
+
+
+
 
 class Object:
     def __init__(self, x_pos, y_pos):
@@ -103,41 +152,26 @@ class Player(Object):
 
         self.transparency = 0
 
-        self.default = pygame.image.load("stand_1.png")
-        self.default = pygame.transform.scale(self.default, (p_size_x, p_size_y))
+        self.default = player_default
+        self.stand_1 = player_stand_1
+        self.stand_2 = player_stand_2
 
-        self.stand_1 = pygame.image.load("stand_1.png")
-        self.stand_1 = pygame.transform.scale(self.stand_1, (p_size_x, p_size_y))
-        self.stand_2 = pygame.image.load("stand_2.png")
-        self.stand_2 = pygame.transform.scale(self.stand_2, (p_size_x, p_size_y))
-        self.standing = [self.stand_1 for _ in range(10)] + [self.stand_2 for _ in range(10)]
+        self.standing = [player_stand_1 for _ in range(10)] + [player_stand_2 for _ in range(10)]
 
-        self.run_1 = pygame.image.load("run_1.png")
-        self.run_1 = pygame.transform.scale(self.run_1, (p_size_x, p_size_y))
-        self.run_2 = pygame.image.load("run_2.png")
-        self.run_2 = pygame.transform.scale(self.run_2, (p_size_x, p_size_y))
-        self.run_3 = pygame.image.load("run_3.png")
-        self.run_3 = pygame.transform.scale(self.run_3, (p_size_x, p_size_y))
-        self.run_4 = pygame.image.load("run_4.png")
-        self.run_4 = pygame.transform.scale(self.run_4, (p_size_x, p_size_y))
-        self.run_5 = pygame.image.load("run_5.png")
-        self.run_5 = pygame.transform.scale(self.run_5, (p_size_x, p_size_y))
-        self.run_6 = pygame.image.load("run_6.png")
-        self.run_6 = pygame.transform.scale(self.run_6, (p_size_x, p_size_y))
-        self.run_7 = pygame.image.load("run_7.png")
-        self.run_7 = pygame.transform.scale(self.run_7, (p_size_x, p_size_y))
-        self.run_8 = pygame.image.load("run_8.png")
-        self.run_8 = pygame.transform.scale(self.run_8, (p_size_x, p_size_y))
-        self.running = [self.run_1, self.run_2, self.run_3, self.run_4, self.run_5, self.run_6, self.run_7, self.run_8]
+        self.run_1 = player_run_1
+        self.run_2 = player_run_2
+        self.run_3 = player_run_3
+        self.run_4 = player_run_4
+        self.run_5 = player_run_5
+        self.run_6 = player_run_6
+        self.run_7 = player_run_7
+        self.run_8 = player_run_8
 
-        self.jump = pygame.image.load("jump.png")
-        self.jump = pygame.transform.scale(self.jump, (p_size_x, p_size_y))
+        self.running = [player_run_1, player_run_2, player_run_3, player_run_4, player_run_5, player_run_6, player_run_7, player_run_8]
 
-        self.wall_jump = pygame.image.load("wall_jump.png")
-        self.wall_jump = pygame.transform.scale(self.wall_jump, (p_size_x, p_size_y))
-
-        self.fall = pygame.image.load("fall.png")
-        self.fall = pygame.transform.scale(self.fall, (p_size_x, p_size_y))
+        self.jump = player_jump
+        self.wall_jump = player_wall_jump
+        self.fall = player_fall
 
         self.apples = 0
         self.bananas = 0
@@ -350,11 +384,8 @@ class Ground(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.grass = pygame.image.load("Grass.png")
-        self.grass = pygame.transform.scale(self.grass, (b_size, b_size))
-
-        self.default = pygame.image.load("Ground.png")
-        self.default = pygame.transform.scale(self.default, (b_size, b_size))
+        self.grass = ground_grass
+        self.default = ground_default
 
     def MakeSelfRect(self):
         return self.MakeRect(self.default)
@@ -367,7 +398,7 @@ class BrickBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.default = pygame.image.load("Block_Brick.png")
+        self.default = pygame.image.load("Block_Brick.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size))
 
     def MakeSelfRect(self):
@@ -381,7 +412,7 @@ class SilverBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.default = pygame.image.load("Block_Silver.png")
+        self.default = pygame.image.load("Block_Silver.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size))
 
     def MakeSelfRect(self):
@@ -395,7 +426,7 @@ class GoldBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.default = pygame.image.load("Block_Gold.png")
+        self.default = pygame.image.load("Block_Gold.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size))
 
     def MakeSelfRect(self):
@@ -409,7 +440,7 @@ class BrownBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.default = pygame.image.load("Block_Brown.png")
+        self.default = pygame.image.load("Block_Brown.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size))
 
     def MakeSelfRect(self):
@@ -423,7 +454,7 @@ class OrangeBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.default = pygame.image.load("Block_Orange.png")
+        self.default = pygame.image.load("Block_Orange.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size))
 
     def MakeSelfRect(self):
@@ -439,9 +470,9 @@ class SmallSilverBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.y_position -= 1
+        # self.y_position -= 1
 
-        self.default = pygame.image.load("Block_Silver.png")
+        self.default = pygame.image.load("Block_Silver.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
 
     def MakeSelfRect(self):
@@ -455,9 +486,9 @@ class SmallGoldBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.y_position -= 1
+        # self.y_position -= 1
 
-        self.default = pygame.image.load("Block_Gold.png")
+        self.default = pygame.image.load("Block_Gold.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
 
     def MakeSelfRect(self):
@@ -471,9 +502,9 @@ class SmallBrownBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.y_position -= 1
+        # self.y_position -= 1
 
-        self.default = pygame.image.load("Block_Brown.png")
+        self.default = pygame.image.load("Block_Brown.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
 
     def MakeSelfRect(self):
@@ -487,9 +518,9 @@ class SmallOrangeBlock(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.y_position -= 1
+        # self.y_position -= 1
 
-        self.default = pygame.image.load("Block_Orange.png")
+        self.default = pygame.image.load("Block_Orange.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size / 2, b_size / 2))
 
     def MakeSelfRect(self):
@@ -507,7 +538,7 @@ class GoldThickPlat(Object):
 
         self.y_position = self.y_position - b_size / 3 * 2
 
-        self.default = pygame.image.load("Plat_Thick_Gold.png")
+        self.default = pygame.image.load("Plat_Thick_Gold.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 3))
 
     def MakeSelfRect(self):
@@ -523,7 +554,7 @@ class SilverThickPlat(Object):
 
         self.y_position = self.y_position - b_size / 3 * 2
 
-        self.default = pygame.image.load("Plat_Thick_Silver.png")
+        self.default = pygame.image.load("Plat_Thick_Silver.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 3))
 
     def MakeSelfRect(self):
@@ -539,7 +570,7 @@ class BrownThickPlat(Object):
 
         self.y_position = self.y_position - b_size / 3 * 2
 
-        self.default = pygame.image.load("Plat_Thick_Brown.png")
+        self.default = pygame.image.load("Plat_Thick_Brown.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 3))
 
     def MakeSelfRect(self):
@@ -555,7 +586,7 @@ class OrangeThickPlat(Object):
 
         self.y_position = self.y_position - b_size / 3 * 2
 
-        self.default = pygame.image.load("Plat_Thick_Orange.png")
+        self.default = pygame.image.load("Plat_Thick_Orange.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 3))
 
     def MakeSelfRect(self):
@@ -571,7 +602,7 @@ class GoldThinPlat(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.default = pygame.image.load("Plat_Thin_Gold.png")
+        self.default = pygame.image.load("Plat_Thin_Gold.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 10))
 
     def MakeSelfRect(self):
@@ -585,7 +616,7 @@ class SilverThinPlat(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.default = pygame.image.load("Plat_Thin_Silver.png")
+        self.default = pygame.image.load("Plat_Thin_Silver.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 10))
 
     def MakeSelfRect(self):
@@ -599,7 +630,7 @@ class WoodThinPlat(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.default = pygame.image.load("Plat_Thin_Wood.png")
+        self.default = pygame.image.load("Plat_Thin_Wood.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (b_size, b_size / 10))
 
     def MakeSelfRect(self):
@@ -611,9 +642,9 @@ class StartGame(Object):
     def __init__(self, x_pos, y_pos, num):
         super().__init__(x_pos, y_pos)
 
-        self.start_arrow = pygame.image.load('Start_arrow.png')
+        self.start_arrow = pygame.image.load('Start_arrow.png').convert_alpha()
         self.start_arrow = pygame.transform.scale(self.start_arrow, (b_size // 10 * 6, b_size))
-        self.start_stage = pygame.image.load('Start_stage.png')
+        self.start_stage = pygame.image.load('Start_stage.png').convert_alpha()
         self.start_stage = pygame.transform.scale(self.start_stage, (b_size, b_size // 4))
 
         if num == 1:
@@ -630,14 +661,14 @@ class Checkpoint(Object):
 
         self.checkpoint_TF = False
 
-        self.no_checkpoint = pygame.image.load("Checkpoint_No.png")
+        self.no_checkpoint = pygame.image.load("Checkpoint_No.png").convert_alpha()
 
-        self.checkpoint_1 = pygame.image.load("Checkpoint_Flag_1.png")
-        self.checkpoint_2 = pygame.image.load("Checkpoint_Flag_2.png")
-        self.checkpoint_3 = pygame.image.load("Checkpoint_Flag_3.png")
-        self.checkpoint_4 = pygame.image.load("Checkpoint_Flag_4.png")
-        self.checkpoint_5 = pygame.image.load("Checkpoint_Flag_5.png")
-        self.checkpoint_6 = pygame.image.load("Checkpoint_Flag_6.png")
+        self.checkpoint_1 = pygame.image.load("Checkpoint_Flag_1.png").convert_alpha()
+        self.checkpoint_2 = pygame.image.load("Checkpoint_Flag_2.png").convert_alpha()
+        self.checkpoint_3 = pygame.image.load("Checkpoint_Flag_3.png").convert_alpha()
+        self.checkpoint_4 = pygame.image.load("Checkpoint_Flag_4.png").convert_alpha()
+        self.checkpoint_5 = pygame.image.load("Checkpoint_Flag_5.png").convert_alpha()
+        self.checkpoint_6 = pygame.image.load("Checkpoint_Flag_6.png").convert_alpha()
 
         self.checkpointing = [self.checkpoint_1, self.checkpoint_1,
                               self.checkpoint_2, self.checkpoint_2,
@@ -657,13 +688,13 @@ class EndGame(Object):
     def __init__(self, x_pos, y_pos):
         super().__init__(x_pos, y_pos)
 
-        self.end_no = pygame.image.load('End_No.png')
+        self.end_no = pygame.image.load('End_No.png').convert_alpha()
         self.end_no = pygame.transform.scale(self.end_no, (b_size * 2, b_size * 2))
-        self.end_1 = pygame.image.load('End_1.png')
+        self.end_1 = pygame.image.load('End_1.png').convert_alpha()
         self.end_1 = pygame.transform.scale(self.end_1, (b_size * 2, b_size * 2))
-        self.end_2= pygame.image.load('End_2.png')
+        self.end_2= pygame.image.load('End_2.png').convert_alpha()
         self.end_2 = pygame.transform.scale(self.end_2, (b_size * 2, b_size * 2 - b_size // 10))
-        self.end_3 = pygame.image.load('End_3.png')
+        self.end_3 = pygame.image.load('End_3.png').convert_alpha()
         self.end_3 = pygame.transform.scale(self.end_3, (b_size * 2, b_size * 2 - b_size // 5))
 
         self.default = self.end_1
@@ -687,8 +718,15 @@ class EndGame(Object):
                 global level
                 global best_score
                 over_game_time = pygame.time.get_ticks()
-                if over_game_time - start_game_time < best_score:
-                    best_score = over_game_time - start_game_time
+                if best_score[2] == 0:
+                    best_score[0] = over_game_time - start_game_time
+                    best_score[1] = player_1.coins
+                    best_score[2] = over_game_time - start_game_time - player_1.coins * 1000
+                else:
+                    if over_game_time - start_game_time - player_1.coins < best_score[2]:
+                        best_score[0] = over_game_time - start_game_time
+                        best_score[1] = player_1.coins
+                        best_score[2] = over_game_time - start_game_time - player_1.coins * 1000
                 level = "menu"
 
 
@@ -699,13 +737,13 @@ class Snake(Object):
 
         self.side = "r"
 
-        self.default = pygame.image.load("snake_1.png")
+        self.default = pygame.image.load("snake_1.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (40, 20))
-        self.snake_1 = pygame.image.load("snake_2.png")
+        self.snake_1 = pygame.image.load("snake_2.png").convert_alpha()
         self.snake_1 = pygame.transform.scale(self.snake_1, (40, 20))
-        self.snake_2 = pygame.image.load("snake_3.png")
+        self.snake_2 = pygame.image.load("snake_3.png").convert_alpha()
         self.snake_2 = pygame.transform.scale(self.snake_2, (40, 20))
-        self.snake_3 = pygame.image.load("snake_4.png")
+        self.snake_3 = pygame.image.load("snake_4.png").convert_alpha()
         self.snake_3 = pygame.transform.scale(self.snake_3, (40, 20))
 
         self.going = [self.default, self.default, self.default, self.default, self.default, self.snake_1, self.snake_1, self.snake_1, self.snake_1, self.snake_1, self.snake_2, self.snake_2, self.snake_2, self.snake_2, self.snake_2, self.snake_3, self.snake_3, self.snake_3, self.snake_3, self.snake_3]
@@ -744,21 +782,21 @@ class Mushroom(Object):
 
         self.side = "r"
 
-        self.default = pygame.image.load("mushroom_1.png")
+        self.default = pygame.image.load("mushroom_1.png").convert_alpha()
         self.default = pygame.transform.scale(self.default, (45, 50))
-        self.mushroom_1 = pygame.image.load("mushroom_2.png")
+        self.mushroom_1 = pygame.image.load("mushroom_2.png").convert_alpha()
         self.mushroom_1 = pygame.transform.scale(self.mushroom_1, (45, 50))
-        self.mushroom_2 = pygame.image.load("mushroom_3.png")
+        self.mushroom_2 = pygame.image.load("mushroom_3.png").convert_alpha()
         self.mushroom_2 = pygame.transform.scale(self.mushroom_2, (45, 50))
-        self.mushroom_3 = pygame.image.load("mushroom_4.png")
+        self.mushroom_3 = pygame.image.load("mushroom_4.png").convert_alpha()
         self.mushroom_3 = pygame.transform.scale(self.mushroom_3, (45, 50))
-        self.mushroom_4 = pygame.image.load("mushroom_5.png")
+        self.mushroom_4 = pygame.image.load("mushroom_5.png").convert_alpha()
         self.mushroom_4 = pygame.transform.scale(self.mushroom_4, (45, 50))
-        self.mushroom_5 = pygame.image.load("mushroom_6.png")
+        self.mushroom_5 = pygame.image.load("mushroom_6.png").convert_alpha()
         self.mushroom_5 = pygame.transform.scale(self.mushroom_5, (45, 50))
-        self.mushroom_6 = pygame.image.load("mushroom_7.png")
+        self.mushroom_6 = pygame.image.load("mushroom_7.png").convert_alpha()
         self.mushroom_6 = pygame.transform.scale(self.mushroom_6, (45, 50))
-        self.mushroom_7 = pygame.image.load("mushroom_8.png")
+        self.mushroom_7 = pygame.image.load("mushroom_8.png").convert_alpha()
         self.mushroom_7 = pygame.transform.scale(self.mushroom_7, (45, 50))
 
         self.going = [self.default, self.default,
@@ -808,28 +846,28 @@ class Horse(Object):
 
         self.side = "r"
 
-        self.run_1 = pygame.image.load("horse_run_1.png")
+        self.run_1 = pygame.image.load("horse_run_1.png").convert_alpha()
         self.run_1 = pygame.transform.scale(self.run_1, (self.size_x, self.size_y)) #(186, 138)
-        self.run_2 = pygame.image.load("horse_run_2.png")
+        self.run_2 = pygame.image.load("horse_run_2.png").convert_alpha()
         self.run_2 = pygame.transform.scale(self.run_2, (self.size_x, self.size_y))
-        self.run_3 = pygame.image.load("horse_run_3.png")
+        self.run_3 = pygame.image.load("horse_run_3.png").convert_alpha()
         self.run_3 = pygame.transform.scale(self.run_3, (self.size_x, self.size_y))
-        self.run_4 = pygame.image.load("horse_run_4.png")
+        self.run_4 = pygame.image.load("horse_run_4.png").convert_alpha()
         self.run_4 = pygame.transform.scale(self.run_4, (self.size_x, self.size_y))
-        self.run_5 = pygame.image.load("horse_run_5.png")
+        self.run_5 = pygame.image.load("horse_run_5.png").convert_alpha()
         self.run_5 = pygame.transform.scale(self.run_5, (self.size_x, self.size_y))
-        self.run_6 = pygame.image.load("horse_run_6.png")
+        self.run_6 = pygame.image.load("horse_run_6.png").convert_alpha()
         self.run_6 = pygame.transform.scale(self.run_6, (self.size_x, self.size_y))
 
-        self.hit_1 = pygame.image.load("horse_hit_2.png")
+        self.hit_1 = pygame.image.load("horse_hit_2.png").convert_alpha()
         self.hit_1 = pygame.transform.scale(self.hit_1, (self.size_x, self.size_y))
-        self.hit_2 = pygame.image.load("horse_hit_3.png")
+        self.hit_2 = pygame.image.load("horse_hit_3.png").convert_alpha()
         self.hit_2 = pygame.transform.scale(self.hit_2, (self.size_x, self.size_y))
-        self.hit_3 = pygame.image.load("horse_hit_4.png")
+        self.hit_3 = pygame.image.load("horse_hit_4.png").convert_alpha()
         self.hit_3 = pygame.transform.scale(self.hit_3, (self.size_x + self.size_x // 3, self.size_y))
-        self.hit_4 = pygame.image.load("horse_hit_5.png")
+        self.hit_4 = pygame.image.load("horse_hit_5.png").convert_alpha()
         self.hit_4 = pygame.transform.scale(self.hit_4, (self.size_x + self.size_x // 1.5, self.size_y))
-        self.hit_5 = pygame.image.load("horse_hit_6.png")
+        self.hit_5 = pygame.image.load("horse_hit_6.png").convert_alpha()
         self.hit_5 = pygame.transform.scale(self.hit_5, (self.size_x + self.size_x // 10, self.size_y))
 
         self.default = self.run_1
@@ -936,33 +974,33 @@ class Mummy(Object):
 
         self.side = "l"
 
-        self.run_1 = pygame.image.load("mum_run_1.png")
+        self.run_1 = pygame.image.load("mum_run_1.png").convert_alpha()
         self.run_1 = pygame.transform.rotozoom(self.run_1, 0, 3)
-        self.run_2 = pygame.image.load("mum_run_2.png")
+        self.run_2 = pygame.image.load("mum_run_2.png").convert_alpha()
         self.run_2 = pygame.transform.rotozoom(self.run_2, 0, 3)
-        self.run_3 = pygame.image.load("mum_run_3.png")
+        self.run_3 = pygame.image.load("mum_run_3.png").convert_alpha()
         self.run_3 = pygame.transform.rotozoom(self.run_3, 0, 3)
-        self.run_4 = pygame.image.load("mum_run_4.png")
+        self.run_4 = pygame.image.load("mum_run_4.png").convert_alpha()
         self.run_4 = pygame.transform.rotozoom(self.run_4, 0, 3)
-        self.run_5 = pygame.image.load("mum_run_5.png")
+        self.run_5 = pygame.image.load("mum_run_5.png").convert_alpha()
         self.run_5 = pygame.transform.rotozoom(self.run_5, 0, 3)
-        self.run_6 = pygame.image.load("mum_run_6.png")
+        self.run_6 = pygame.image.load("mum_run_6.png").convert_alpha()
         self.run_6 = pygame.transform.rotozoom(self.run_6, 0, 3)
 
-        self.hit_1 = pygame.image.load("mum_hit_1.png")
+        self.hit_1 = pygame.image.load("mum_hit_1.png").convert_alpha()
         self.hit_1 = pygame.transform.rotozoom(self.hit_1, 0, 3)
-        self.hit_2 = pygame.image.load("mum_hit_2.png")
+        self.hit_2 = pygame.image.load("mum_hit_2.png").convert_alpha()
         self.hit_2 = pygame.transform.rotozoom(self.hit_2, 0, 3)
-        self.hit_3 = pygame.image.load("mum_hit_3.png")
+        self.hit_3 = pygame.image.load("mum_hit_3.png").convert_alpha()
         self.hit_3 = pygame.transform.rotozoom(self.hit_3, 0, 3)
-        self.hit_4 = pygame.image.load("mum_hit_4.png")
+        self.hit_4 = pygame.image.load("mum_hit_4.png").convert_alpha()
         self.hit_4 = pygame.transform.rotozoom(self.hit_4, 0, 3)
-        self.hit_5 = pygame.image.load("mum_hit_5.png")
+        self.hit_5 = pygame.image.load("mum_hit_5.png").convert_alpha()
         self.hit_5 = pygame.transform.rotozoom(self.hit_5, 0, 3)
 
-        self.stand_1 = pygame.image.load("mum_stand_1.png")
+        self.stand_1 = pygame.image.load("mum_stand_1.png").convert_alpha()
         self.stand_1 = pygame.transform.rotozoom(self.stand_1, 0, 3)
-        self.stand_2 = pygame.image.load("mum_stand_2.png")
+        self.stand_2 = pygame.image.load("mum_stand_2.png").convert_alpha()
         self.stand_2 = pygame.transform.rotozoom(self.stand_2, 0, 3)
 
         self.default = self.run_1
@@ -1470,8 +1508,8 @@ class Box(Object):
 
 
 
-player_1 = Player(0, 0)
-check_p_1 = Checkpoint(0, 0)
+# player_1 = Player(0, 0)
+# check_p_1 = Checkpoint(0, 0)
 
 
 def blit():
@@ -1481,8 +1519,13 @@ def blit():
     screen.blit(blue_sky, blue_sky_rect)
 
     for i in range(len(list_grs)):
-        # 0 <= i.x_position >= 1300 and 0 >= i.y_position <= 700
+        # screen.blit(list_grs[i].default, list_grs[i].MakeSelfRect())
         if list_grs[i].MakeSelfRect().left <= 1300 and list_grs[i].MakeSelfRect().right >= 0 and list_grs[i].MakeSelfRect().top <= 700 and list_grs[i].MakeSelfRect().bottom >= 0:
+            # if i > len(set(list_grs) - set(list_grs_copy)):
+            #     screen.blit(list_grs[i].grass, list_grs[i].MakeSelfRect())
+            # else:
+            #     screen.blit(list_grs[i].default, list_grs[i].MakeSelfRect())
+
             if list_grounds_decide[i] == "grass":
                 screen.blit(list_grs[i].grass, list_grs[i].MakeSelfRect())
             elif list_grounds_decide[i] == "ground":
@@ -1563,8 +1606,9 @@ def blit():
             screen.blit(x.default, x.MakeRect(x.default))
             screen.blit(x.default_2, x.MakeSelfRectFruit())
 
+    find_find_mode = find_mode()
 
-    if find_mode() == "stand":
+    if find_find_mode == "stand":
         player_1.standing[0].set_alpha(player_1.transparency)
         if side == "r":
             screen.blit(player_1.standing[0], player_1.MakePlayerRect())
@@ -1573,7 +1617,7 @@ def blit():
         player_1.standing.append(player_1.standing[0])
         player_1.standing.pop(0)
 
-    elif find_mode() == "run":
+    elif find_find_mode == "run":
         player_1.running[0].set_alpha(player_1.transparency)
         if side == "r":
             screen.blit(player_1.running[0], player_1.MakePlayerRect())
@@ -1582,7 +1626,7 @@ def blit():
         player_1.running.append(player_1.running[0])
         player_1.running.pop(0)
 
-    elif find_mode() == "jump":
+    elif find_find_mode == "jump":
         player_1.jump.set_alpha(player_1.transparency)
         player_1.running = [player_1.run_1, player_1.run_2, player_1.run_3, player_1.run_4, player_1.run_5, player_1.run_6, player_1.run_7, player_1.run_8]
         if side == "r":
@@ -1590,7 +1634,7 @@ def blit():
         else:
             screen.blit(pygame.transform.flip(player_1.jump, True, False), player_1.MakePlayerRect())
 
-    elif find_mode() == "fall":
+    elif find_find_mode == "fall":
         player_1.fall.set_alpha(player_1.transparency)
         player_1.running = [player_1.run_1, player_1.run_2, player_1.run_3, player_1.run_4, player_1.run_5, player_1.run_6, player_1.run_7, player_1.run_8]
         if side == "r":
@@ -1598,7 +1642,7 @@ def blit():
         else:
             screen.blit(pygame.transform.flip(player_1.fall, True, False), player_1.MakePlayerRect())
 
-    elif find_mode() == "wall":
+    elif find_find_mode == "wall":
         player_1.wall_jump.set_alpha(player_1.transparency)
         player_1.running = [player_1.run_1, player_1.run_2, player_1.run_3, player_1.run_4, player_1.run_5, player_1.run_6, player_1.run_7, player_1.run_8]
         if side == "r":
@@ -1617,24 +1661,32 @@ def blit():
     screen.blit(apple, apple_rect)
     screen.blit(banana, banana_rect)
     screen.blit(cherry, cherry_rect)
-    screen.blit(coin, coin_rect)
+    screen.blit(coin_1, coin_1_rect)
 
-    text = pygame.font.Font(None, 50)
+    global apples, bananas, cherries, coins_not_list, apples_count, apples_count_rect, banana_count, banana_count_rect, cherry_count, cherry_count_rect, coin_count, coin_count_rect
 
-    apples_count = text.render(f"{player_1.apples}", True, 'Black')
-    apples_count_rect = apples_count.get_rect(topleft=(340, 5))
+    if apples != player_1.apples:
+        apples = player_1.apples
+        apples_count = text.render(f"{player_1.apples}", True, 'Black')
+        apples_count_rect = apples_count.get_rect(topleft=(340, 5))
     screen.blit(apples_count, apples_count_rect)
 
-    banana_count = text.render(f"{player_1.bananas}", True, 'Black')
-    banana_count_rect = banana_count.get_rect(topleft=(490, 5))
+    if bananas != player_1.bananas:
+        bananas = player_1.bananas
+        banana_count = text.render(f"{player_1.bananas}", True, 'Black')
+        banana_count_rect = apples_count.get_rect(topleft=(490, 5))
     screen.blit(banana_count, banana_count_rect)
 
-    cherry_count = text.render(f"{player_1.cherries}", True, 'Black')
-    cherry_count_rect = cherry_count.get_rect(topleft=(640, 5))
+    if cherries != player_1.cherries:
+        cherries = player_1.cherries
+        cherry_count = text.render(f"{player_1.cherries}", True, 'Black')
+        cherry_count_rect = cherry_count.get_rect(topleft=(640, 5))
     screen.blit(cherry_count, cherry_count_rect)
 
-    coin_count = text.render(f"{player_1.coins}", True, 'Black')
-    coin_count_rect = coin_count.get_rect(topleft=(890, 5))
+    if coins_not_list != player_1.coins:
+        coins_not_list = player_1.coins
+        coin_count = text.render(f"{player_1.coins}", True, 'Black')
+        coin_count_rect = coin_count.get_rect(topleft=(890, 5))
     screen.blit(coin_count, coin_count_rect)
 
     screen.blit(go_back_button, go_back_button_rect)
@@ -1762,6 +1814,7 @@ def start_play():
     global boxes
     global touch_objects
     global start_game_time
+    global apples, bananas, cherries, coins_not_list
 
     # variables
     # -------------------------
@@ -1771,266 +1824,257 @@ def start_play():
     move_scene_y = 0
     mode = "fall"
     side = "r"
-    checkpoints = 1
-
+    checkpoints = 0
+    apples = -1
+    bananas = -1
+    cherries = -1
+    coins_not_list = -1
     # -------------------------
 
-    list_grs = [Ground(1, 1),
-                Ground(2, 1),
-                Ground(3, 1),
-
-                Ground(1, 2),
-                Ground(2, 2),
-                Ground(3, 2),
-
-                Ground(4, 1),
-                Ground(5, 1),
-                Ground(6, 1),
-                Ground(7, 1),
-                Ground(8, 1),
-                Ground(1, 1),
-                Ground(9, 1),
-                Ground(10, 1),
-                Ground(11, 1),
-                Ground(9, 2),
-                Ground(10, 2),
-                Ground(11, 2),
-                Ground(10, 3),
-                Ground(11, 3),
-                Ground(11, 4),
-                Ground(15, 2),
-                Ground(16, 2),
-                Ground(17, 2),
-                Ground(15, 3),
-                Ground(16, 3),
-                Ground(15, 4),
-                Ground(15, 1),
-                Ground(16, 1),
-                Ground(17, 1),
-                Ground(18, 1),
-                Ground(19, 1),
-                Ground(20, 1),
-                Ground(21, 1),
-                Ground(21, 2),
-
-                Ground(22, 1),
-                Ground(22, 2),
-                Ground(22, 3),
-
-                Ground(23, 1),
-                Ground(23, 2),
-                Ground(23, 3),
-
-                Ground(24, 1),
-                Ground(24, 2),
-                Ground(24, 3),
-
-                Ground(25, 1),
-                Ground(25, 2),
-                Ground(25, 3),
-
-                Ground(26, 1),
-                Ground(26, 2),
-                Ground(26, 3),
-
-                Ground(26, 1),
-                Ground(26, 2),
-
-                Ground(27, 1),
-                Ground(27, 2),
-
-                Ground(28, 1),
-                Ground(28, 2),
-
-                Ground(29, 1),
-                Ground(29, 2),
-
-                Ground(30, 1),
-                Ground(30, 2),
-
-                Ground(31, 1),
-                Ground(31, 2),
-                Ground(31, 3),
-                Ground(31, 4),
-
-                Ground(32, 1),
-                Ground(32, 2),
-                Ground(32, 3),
-                Ground(32, 4),
-
-                Ground(33, 1),
-                Ground(33, 2),
-                Ground(33, 3),
-
-                Ground(34, 1),
-                Ground(34, 2),
-
-                Ground(35, 1),
-                Ground(35, 2),
-
-                Ground(36, 1),
-
-                Ground(37, 1),
-
-                Ground(38, 1),
-
-                Ground(39, 1),
-
-                Ground(40, 1),
-
-                Ground(41, 1),
-
-                Ground(42, 1),
-
-                Ground(43, 1),
-
-                Ground(44, 1),
-
-                Ground(45, 1),
-
-                Ground(46, 1),
-
-                Ground(47, 1),
-
-                Ground(48, 1),
-
-                Ground(49, 1),
-
-                Ground(50, 1),
-                Ground(50, 2),
-
-                Ground(51, 1),
-                Ground(51, 2),
-
-                Ground(52, 1),
-                Ground(52, 2),
-                Ground(52, 3),
-
-                Ground(53, 1),
-
-                Ground(54, 1),
-
-                Ground(55, 1),
-
-                Ground(56, 1),
-
-                Ground(57, 1),
-
-                Ground(58, 1),
-
-                Ground(59, 1),
-                Ground(59, 2),
-
-                Ground(60, 1),
-                Ground(60, 2),
-
-                Ground(61, 1),
-                Ground(61, 2),
-                Ground(61, 3),
-                Ground(61, 4),
-                Ground(61, 5),
-                Ground(61, 6),
-                Ground(61, 7),
-
-                Ground(62, 7),
-
-                Ground(63, 7),
-
-                Ground(64, 1),
-                Ground(64, 2),
-                Ground(64, 3),
-                Ground(64, 4),
-                Ground(64, 5),
-                Ground(64, 6),
-                Ground(64, 7),
-
-                Ground(65, 1),
-
-                Ground(66, 1),
-
-                Ground(67, 1),
-
-                Ground(68, 1),
-
-                Ground(69, 1),
-
-                Ground(70, 1),
-
-                Ground(71, 1),
-                Ground(71, 2),
-                Ground(71, 3),
-                Ground(71, 4),
-                Ground(71, 5),
-                Ground(71, 6),
-                Ground(71, 7),
-                Ground(71, 8),
-
-                Ground(72, 1),
-                Ground(72, 2),
-                Ground(72, 3),
-                Ground(72, 7),
-                Ground(72, 8),
-
-                Ground(73, 1),
-                Ground(73, 2),
-                Ground(73, 8),
-
-                Ground(74, 1),
-
-                Ground(75, 1),
-
-                Ground(110, 1),
-
-                Ground(111, 3),
-                Ground(111, 2),
-                Ground(111, 1),
-
-                Ground(112, 4),
-                Ground(112, 3),
-                Ground(112, 2),
-                Ground(112, 1),
-
-                Ground(113, 5),
-                Ground(113, 4),
-                Ground(113, 3),
-                Ground(113, 2),
-                Ground(113, 1),
-
-                Ground(114, 6),
-                Ground(114, 5),
-                Ground(114, 4),
-                Ground(114, 3),
-                Ground(114, 2),
-                Ground(114, 1),
-
-                Ground(115, 6),
-                Ground(115, 5),
-                Ground(115, 4),
-                Ground(115, 3),
-                Ground(115, 2),
-                Ground(115, 1),
-
-                Ground(116, 5),
-                Ground(117, 5),
-                Ground(118, 5),
-
-                Ground(1, 5),
+    list_grs = [
+        Ground(1, 2),
+        Ground(2, 2),
+        Ground(3, 2),
+        Ground(4, 1),
+        Ground(5, 1),
+        Ground(6, 1),
+        Ground(7, 1),
+        Ground(8, 1),
+        Ground(9, 1),
+        Ground(10, 1),
+        Ground(11, 1),
+        Ground(9, 2),
+        Ground(10, 3),
+        Ground(11, 4),
+        Ground(17, 2),
+        Ground(16, 3),
+        Ground(15, 4),
+        Ground(15, 1),
+        Ground(16, 1),
+        Ground(17, 1),
+        Ground(18, 1),
+        Ground(19, 1),
+        Ground(20, 1),
+        Ground(21, 2),
+        Ground(22, 3),
+        Ground(23, 3),
+        Ground(24, 3),
+        Ground(25, 3),
+        Ground(26, 3),
+        Ground(26, 2),
+        Ground(27, 2),
+        Ground(28, 2),
+        Ground(29, 2),
+        Ground(30, 2),
+        Ground(31, 4),
+        Ground(32, 4),
+        Ground(33, 3),
+        Ground(34, 2),
+        Ground(35, 2),
+        Ground(36, 1),
+        Ground(37, 1),
+        Ground(38, 1),
+        Ground(39, 1),
+        Ground(40, 1),
+        Ground(41, 1),
+        Ground(42, 1),
+        Ground(43, 1),
+        Ground(44, 1),
+        Ground(45, 1),
+        Ground(46, 1),
+        Ground(47, 1),
+        Ground(48, 1),
+        Ground(49, 1),
+        Ground(50, 2),
+        Ground(51, 2),
+        Ground(52, 3),
+        Ground(53, 1),
+        Ground(54, 1),
+        Ground(55, 1),
+        Ground(56, 1),
+        Ground(57, 1),
+        Ground(58, 1),
+        Ground(59, 2),
+        Ground(60, 2),
+        Ground(61, 7),
+        Ground(62, 7),
+        Ground(63, 7),
+        Ground(64, 7),
+        Ground(65, 1),
+        Ground(66, 1),
+        Ground(67, 1),
+        Ground(68, 1),
+        Ground(69, 1),
+        Ground(70, 1),
+        Ground(71, 8),
+        Ground(72, 7),
+        Ground(72, 8),
+        Ground(73, 8),
+        Ground(72, 3),
+        Ground(73, 2),
+        Ground(74, 1),
+        Ground(75, 1),
+        Ground(110, 1),
+        Ground(111, 3),
+        Ground(112, 4),
+        Ground(113, 5),
+        Ground(114, 6),
+        Ground(115, 6),
+        Ground(116, 5),
+        Ground(117, 3),
+        Ground(118, 2),
+        Ground(119, 2),
+        Ground(120, 2),
+        Ground(127, 2),
+        Ground(128, 2),
+        Ground(129, 2),
+        Ground(130, 3),
+        Ground(131, 4),
+        Ground(132, 6),
+        Ground(133, 5),
+        Ground(133, 6),
+        Ground(133, 7),
+        Ground(134, 6),
+        Ground(134, 7),
+        Ground(134, 8),
+        Ground(133, 1),
+        Ground(134, 1),
+        Ground(135, 1),
+        Ground(136, 1),
+        Ground(137, 1),
+        Ground(138, 1),
+        Ground(139, 1),
+        Ground(140, 1),
+        Ground(141, 1),
+        Ground(142, 1),
+        Ground(143, 1),
                 ]
 
+    plats = [
+        # SilverThickPlat(7, 8),
+        # SilverThickPlat(6, 8),
+        #
+        # SilverThickPlat(13, 10),
+        # SilverThickPlat(14, 10),
+        #
+        # SilverThickPlat(15, 13),
+        # SilverThickPlat(16, 13),
+        #
+        # SilverThickPlat(27, 13),
+        # SilverThickPlat(28, 13),
+        # SilverThickPlat(29, 13),
+        #
+        # SilverThickPlat(23, 6),
+        # SilverThickPlat(24, 6),
+        # SilverThickPlat(25, 6),
+        #
+        # OrangeThickPlat(89, 12),
+        # OrangeThickPlat(90, 12),
+        # OrangeThickPlat(89, 16),
+        # OrangeThickPlat(90, 16),
+        #
+        # OrangeThickPlat(93, 14),
+        # OrangeThickPlat(94, 14),
+        # OrangeThickPlat(93, 18),
+        # OrangeThickPlat(94, 18),
+        #
+        # SilverThinPlat(98, 18),
+        # SilverThinPlat(99, 18),
+        # SilverThinPlat(100, 18),
+        # SilverThinPlat(101, 18),
+        # SilverThinPlat(102, 18),
+        # SilverThinPlat(103, 18),
+        # SilverThinPlat(104, 18),
+        # SilverThinPlat(105, 18),
+        # SilverThinPlat(106, 18),
+        #
+        # BrownThickPlat(108, 15),
+        # BrownThickPlat(109, 15),
+        #
+        # BrownThickPlat(110, 12),
+        # BrownThickPlat(111, 12),
+        #
+        # BrownThickPlat(112, 9),
+        # BrownThickPlat(113, 9),
+        #
+        # OrangeThickPlat(73, 7),
+        # OrangeThickPlat(72, 6),
+        #
+        # OrangeThickPlat(134, 5),
+        # OrangeThickPlat(133, 4),
+            ]
+
+    list_blocks = [
+        # GoldBlock(40, 5),
+        # GoldBlock(41, 5),
+        # GoldBlock(42, 5),
+        # GoldBlock(43, 5),
+        # GoldBlock(39, 6),
+        # GoldBlock(44, 6),
+        # SmallSilverBlock(39.5, 5.5),
+        # SmallSilverBlock(44, 5.5),
+        #
+        # BrickBlock(49, 6),
+        # BrickBlock(50, 6),
+        # BrickBlock(51, 6),
+        # BrickBlock(52, 6),
+        # BrickBlock(53, 6),
+        #
+        # SmallSilverBlock(60.5, 7.5),
+        #
+        # BrownBlock(62, 1),
+        # BrownBlock(62, 2),
+        # BrownBlock(62, 3),
+        # BrownBlock(62, 4),
+        # BrownBlock(62, 5),
+        # BrownBlock(62, 6),
+        # BrownBlock(63, 1),
+        # BrownBlock(63, 2),
+        # BrownBlock(63, 3),
+        # BrownBlock(63, 4),
+        # BrownBlock(63, 5),
+        # BrownBlock(63, 6),
+        #
+        # # SmallOrangeBlock(74, 8.5),
+        # # SmallOrangeBlock(73, 7.5),
+        # # SmallOrangeBlock(72, 6.5),
+        # # SmallOrangeBlock(72, 4),
+        # # SmallOrangeBlock(73, 3),
+        # # SmallOrangeBlock(74, 2),
+        #
+        # SilverBlock(98, 18),
+        # SilverBlock(107, 18),
+        #
+        # BrickBlock(138, 5),
+        # BrickBlock(138, 6),
+        # BrickBlock(138, 7),
+        # BrickBlock(138, 8),
+        # BrickBlock(138, 9),
+        # BrickBlock(138, 9),
+        #
+        # BrickBlock(139, 4),
+        # BrickBlock(139, 5),
+        # BrickBlock(139, 6),
+        # BrickBlock(139, 7),
+        # BrickBlock(139, 8),
+        # BrickBlock(139, 9),
+        # BrickBlock(139, 10),
+        #
+        # SmallBrownBlock(138.5, 4.5)
+                   ]
+
+    list_grs_copy = []
+
     for i in list_grs:
-        No_Blocks_Down = False
-        for x in list_grs:
+        No_Blocks_Down = True
+        for x in plats + list_blocks + list_grs:
             if i.MakeSelfRect().bottom == x.MakeSelfRect().top and i.MakeSelfRect().left == x.MakeSelfRect().left:
                 No_Blocks_Down = False
         if No_Blocks_Down:
-            for m in range((((700 - i.y_position) + b_size) // b_size)): #self.y_position = 700 - ((y_pos * b_size) - b_size)
-                # break_out = False
-                # for x in list_grs:
-                #     if i.x_position == x.MakeSelfRect().left and 700 - ((m * b_size) - b_size) == x.MakeSelfRect().top + 5:
-                #         break_out = True
-                # if break_out:
-                #     break
-                list_grs.append(Ground(((i.x_position + b_size) // b_size), m)) # ((i.x_position + b_size) // b_size)
+            for m in range((((700 - i.y_position) + b_size) // b_size)):
+                list_grs_copy.append(Ground(((i.x_position + b_size) // b_size), m))
+
+    list_grs = list_grs_copy + list_grs
 
     list_grounds_decide = []
     for i in list_grs:
@@ -2044,223 +2088,165 @@ def start_play():
             list_grounds_decide.append("ground")
 
 
-    plats = [SilverThickPlat(7, 8),
-            SilverThickPlat(6, 8),
-
-            SilverThickPlat(13, 10),
-            SilverThickPlat(14, 10),
-
-            SilverThickPlat(15, 13),
-            SilverThickPlat(16, 13),
-
-            SilverThickPlat(27, 13),
-            SilverThickPlat(28, 13),
-            SilverThickPlat(29, 13),
-
-            SilverThickPlat(23, 6),
-            SilverThickPlat(24, 6),
-            SilverThickPlat(25, 6),
-
-            OrangeThickPlat(89, 12),
-            OrangeThickPlat(90, 12),
-            OrangeThickPlat(89, 16),
-            OrangeThickPlat(90, 16),
-
-            OrangeThickPlat(93, 14),
-            OrangeThickPlat(94, 14),
-            OrangeThickPlat(93, 18),
-            OrangeThickPlat(94, 18),
-
-            SilverThinPlat(98, 18),
-            SilverThinPlat(99, 18),
-            SilverThinPlat(100, 18),
-             SilverThinPlat(101, 18),
-             SilverThinPlat(102, 18),
-             SilverThinPlat(103, 18),
-             SilverThinPlat(104, 18),
-             SilverThinPlat(105, 18),
-             SilverThinPlat(106, 18),
-
-             BrownThickPlat(108, 15),
-             BrownThickPlat(109, 15),
-
-             BrownThickPlat(110, 12),
-             BrownThickPlat(111, 12),
-
-             BrownThickPlat(112, 9),
-             BrownThickPlat(113, 9),
-            ]
-
-    list_blocks = [GoldBlock(40, 5),
-                   GoldBlock(41, 5),
-                   GoldBlock(42, 5),
-                   GoldBlock(43, 5),
-                   GoldBlock(39, 6),
-                   GoldBlock(44, 6),
-                   SmallSilverBlock(39.5, 5.5),
-                   SmallSilverBlock(44, 5.5),
-
-                   BrickBlock(49, 6),
-                   BrickBlock(50, 6),
-                   BrickBlock(51, 6),
-                   BrickBlock(52, 6),
-                   BrickBlock(53, 6),
-
-                   SmallSilverBlock(60.5, 7.5),
-
-                   BrownBlock(62, 1),
-                   BrownBlock(62, 2),
-                   BrownBlock(62, 3),
-                   BrownBlock(62, 4),
-                   BrownBlock(62, 5),
-                   BrownBlock(62, 6),
-                   BrownBlock(63, 1),
-                   BrownBlock(63, 2),
-                   BrownBlock(63, 3),
-                   BrownBlock(63, 4),
-                   BrownBlock(63, 5),
-                   BrownBlock(63, 6),
-
-                   SmallOrangeBlock(74, 8.5),
-                   SmallOrangeBlock(73, 7.5),
-                   SmallOrangeBlock(72, 6.5),
-                   SmallOrangeBlock(72, 4),
-                   SmallOrangeBlock(73, 3),
-                   SmallOrangeBlock(74, 2),
-
-                   SilverBlock(98, 18),
-                   SilverBlock(107, 18),
-                   ]
-
-
     player_1 = Player(2, 3)
 
-    start_game_arrow = StartGame(1, 2, 1)
-    start_game_stage = StartGame(1.4, 2, 2)
-    start_games = []
+    start_game_arrow = StartGame(2, 3, 1)
+    start_game_stage = StartGame(2.4, 3, 2)
+    start_games = [
+        start_game_arrow,
+        start_game_stage
+    ]
 
-    check_ps = [Checkpoint(73, 9)]
+    check_ps = [
+        # Checkpoint(73, 9)
+    ]
 
-    end_game_1 = EndGame(15, 2)
-    end_games = []
+    end_games = [
+        # EndGame(1, 3)
+    ]
 
-    fly_plats = [FlyPlat(17, 16, 25,"RightLeft"),
-                 FlyPlat(44, 8, 54,"RightLeft"),
-                 FlyPlat(78, 7, 2,"UpDown"),
-                 FlyPlat(80, 8, 84,"RightLeft"),
-                 FlyPlat(86, 11, 4, "UpDown"),
+    fly_plats = [
+        # FlyPlat(17, 16, 25,"RightLeft"),
+        # FlyPlat(44, 8, 54,"RightLeft"),
+        # FlyPlat(78, 7, 2,"UpDown"),
+        # FlyPlat(80, 8, 84,"RightLeft"),
+        # FlyPlat(86, 11, 4, "UpDown"),
                  ]
 
-    jump_pads = [JumpPad(11, 5),
-                 JumpPad(47, 2),
-                 JumpPad(59, 3),]
+    jump_pads = [
+        # JumpPad(11, 5),
+        # JumpPad(47, 2),
+        # JumpPad(59, 3),
+    ]
 
-    expand_plats = [ExpandPlat(65, 3)]
+    expand_plats = [
+        # ExpandPlat(65, 3)
+    ]
 
 
-    spikes = [Spike(21, 3),
-              Spike(21.5, 3),
-
-              Spike(28, 14),
-              Spike(28.5, 14),
-
-              Spike(39, 7, 1),
-              Spike(44, 7, 1),
-
-              Spike(50, 3),
-              Spike(50.5, 3),
-
-              Spike(58, 2, 1),
-
-              Spike(65, 2, 1),
-              Spike(66, 2, 1),
-              Spike(67, 2, 1),
-              Spike(68, 2, 1),
-              Spike(69, 2, 1),
-              Spike(70, 2, 1),
+    spikes = [
+        # Spike(21, 3),
+        # Spike(21.5, 3),
+        #
+        # Spike(28, 14),
+        # Spike(28.5, 14),
+        #
+        # Spike(39, 7, 1),
+        # Spike(44, 7, 1),
+        #
+        # Spike(50, 3),
+        # Spike(50.5, 3),
+        #
+        # Spike(58, 2, 1),
+        #
+        # Spike(65, 2, 1),
+        # Spike(66, 2, 1),
+        # Spike(67, 2, 1),
+        # Spike(68, 2, 1),
+        # Spike(69, 2, 1),
+        # Spike(70, 2, 1),
+        #
+        # Spike(135, 2),
+        # Spike(135.5, 2),
+        # Spike(136, 2),
+        # Spike(136.5, 2),
               ]
 
-    saws = [Saw(29.5, 1.5, 3),
-            Saw(52.5, 0.5, 3),]
+    saws = [
+        # Saw(29.5, 1.5, 3),
+        # Saw(52.5, 0.5, 3),
+        # Saw(137, 6, 3),
+            ]
 
     spiked_balls = []#Siked_Ball(36, 7)]
 
-    fires = [Fire(40, 2),
-             Fire(41, 2),
-             Fire(42, 2),
-             Fire(43, 2),
+    fires = [
+        # Fire(40, 2),
+        # Fire(41, 2),
+        # Fire(42, 2),
+        # Fire(43, 2),
              ]
 
 
     # jump_pad = apple, fly_plat = banana, expand_plat = cherry
 
-    fruits = [Fruit(6, 9, "b"),
-              Fruit(27, 3, "a"),
-              Fruit(29, 14, "c"),
-              Fruit(33, 4, "a"),
-              Fruit(40, 6, "a"),
-              Fruit(52, 7, "b"),
-              Fruit(65, 4, "b"),
-              Fruit(72, 9, "b"),
-              Fruit(94, 19, "c"),
+    fruits = [
+        # Fruit(6, 9, "b"),
+        # Fruit(27, 3, "a"),
+        # Fruit(29, 14, "c"),
+        # Fruit(33, 4, "a"),
+        # Fruit(40, 6, "a"),
+        # Fruit(52, 7, "b"),
+        # Fruit(65, 4, "b"),
+        # Fruit(72, 9, "b"),
+        # Fruit(94, 19, "c"),
               ]
 
-    coins = [Coin(1, 5),
-             Coin(2, 5),
-             Coin(3, 5),
-             Coin(1, 6),
-             Coin(2, 6),
-             Coin(3, 6),
-
-             Coin(13, 11),
-             Coin(14, 11),
-
-             Coin(15, 14),
-             Coin(16, 14),
-
-             Coin(23, 7),
-             Coin(24, 7),
-             Coin(25, 7),
-
-             Coin(36, 2),
-             Coin(37, 2),
-             Coin(38, 2),
-             Coin(39, 2),
-
-             Coin(42, 6),
-             Coin(43, 6),
-
-             Coin(49, 2),
-             Coin(51, 3),
-
-             Coin(49, 7),
-             Coin(50, 7),
-
-             Coin(56, 2),
-             Coin(57, 2),
-
-             Coin(72, 5),
-             Coin(73, 4),
-             Coin(73, 5),
-             Coin(73, 6),
-
-             Coin(89, 13),
-             Coin(90, 13),
-
-             Coin(89, 17),
-             Coin(90, 17),
-
-             Coin(93, 15),
-             Coin(94, 15),
+    coins = [
+        # Coin(1, 5),
+        # Coin(2, 5),
+        # Coin(3, 5),
+        # Coin(1, 6),
+        # Coin(2, 6),
+        # Coin(3, 6),
+        #
+        # Coin(13, 11),
+        # Coin(14, 11),
+        #
+        # Coin(15, 14),
+        # Coin(16, 14),
+        #
+        # Coin(23, 7),
+        # Coin(24, 7),
+        # Coin(25, 7),
+        #
+        # Coin(36, 2),
+        # Coin(37, 2),
+        # Coin(38, 2),
+        # Coin(39, 2),
+        #
+        # Coin(42, 6),
+        # Coin(43, 6),
+        #
+        # Coin(49, 2),
+        # Coin(51, 3),
+        #
+        # Coin(49, 7),
+        # Coin(50, 7),
+        #
+        # Coin(56, 2),
+        # Coin(57, 2),
+        #
+        # Coin(72, 5),
+        # Coin(73, 4),
+        # Coin(73, 5),
+        # Coin(73, 6),
+        #
+        # Coin(89, 13),
+        # Coin(90, 13),
+        #
+        # Coin(89, 17),
+        # Coin(90, 17),
+        #
+        # Coin(93, 15),
+        # Coin(94, 15),
              ]
 
-    snakes = [Snake(25, 4),
-              Snake(41, 6),
-              Snake(51, 7),]
+    snakes = [
+        # Snake(25, 4),
+        # Snake(41, 6),
+        # Snake(51, 7),
+        # Snake(128, 3),
+        # Snake(138, 2),
+              ]
 
-    mushrooms = [Mushroom(6, 2),
-                 Mushroom(19, 2),
-                 Mushroom(23, 4)]
+    mushrooms = [
+        # Mushroom(6, 2),
+        # Mushroom(19, 2),
+        # Mushroom(23, 4),
+        # Mushroom(119, 3),
+        # Mushroom(134, 2),
+                 ]
 
     horse_1 = Horse(7, 2)
     horse_2 = Horse(15, 3)
@@ -2272,13 +2258,8 @@ def start_play():
     box_1 = Box(5, 4)
     boxes = []
 
-    touch_objects = list_grs + plats + fires + list_blocks
-
-
-    # touch_objects = [gr_1, gr_2, gr_3, gr_4, gr_5, gr_6, gr_7, gr_8, gr_9, gr_10, gr_11, gr_12, gr_13, gr_14, gr_15, gr_16, gr_17, gr_18,
-    #                  brick_1, orange_b1, silver_b1, gold_b1, brown_b1, gold_thin_plat1, silver_thin_plat1,
-    #                  wood_thin_plat1, gold_thick_plat1, silver_thick_plat1, brown_thick_plat1, orange_thick_plat1,
-    #                  small_silver_b1, small_gold_b1, small_brown_b1, small_orange_b1, jump_pad_1, fire_1, fly_plat_1, start_game_stage, end_game_1,]
+    touch_objects = list_grs# + plats + fires + list_blocks
+    # touch_objects.append(start_game_stage)
 
 def reset():
     global move_scene_x
@@ -2286,10 +2267,10 @@ def reset():
     global player_1
     global fall_jump
     if checkpoints == 0:
-        move_scene_x = 0
+        move_scene_x = 10000
         move_scene_y = 0
         player_1.x_position = 75
-        player_1.y_position = 550 - 1
+        player_1.y_position = 550 - 1 - 400
     if checkpoints == 1:
         move_scene_x = 4770
         move_scene_y = -288
@@ -2402,10 +2383,7 @@ def init_all():
 
 
 
-
-pygame.init()
-screen = pygame.display.set_mode((1300, 700))
-pygame.display.set_caption('Wonderland Escape')
+text = pygame.font.Font(None, 50)
 
 blue_sky = pygame.image.load("Blue_Sky.webp")
 blue_sky = pygame.transform.rotozoom(blue_sky, 0, 6)
@@ -2439,9 +2417,12 @@ cherry = pygame.image.load("Cherry.png")
 cherry = pygame.transform.scale(cherry, (30, 30))
 cherry_rect = cherry.get_rect(topleft=(600, 5))
 
-coin = pygame.image.load("coin.png")
-coin = pygame.transform.scale(coin, (30, 30))
-coin_rect = coin.get_rect(topleft=(850, 5))
+coin_1 = pygame.image.load("coin.png")
+coin_1 = pygame.transform.scale(coin_1, (30, 30))
+coin_1_rect = coin_1.get_rect(topleft=(850, 5))
+
+coin_2 = pygame.transform.scale(coin_1, (50, 50))
+coin_2_rect = coin_2.get_rect(center=(745, 530))
 
 clock = pygame.time.Clock()
 while True:
@@ -2461,18 +2442,29 @@ while True:
 
         text = pygame.font.Font(None, 75)
 
-        best_score_text = text.render(f"Best Score", True, 'Black')
+        best_score_text = text.render(f"Best Score:", True, 'Black')
         best_score_text_rect = best_score_text.get_rect(center=(650, 450))
 
         screen.blit(best_score_text, best_score_text_rect)
 
-        best_score_num_text = text.render(f"{"0" if best_score == 1000000000 else best_score / 1000} s", True, 'Black')
-        best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 525))
+        best_score_num_text = text.render(f"{"0" if best_score[2] == 0 else best_score[2] / 1000} s", True, 'Black')
+        if best_score[2] == 0:
+            best_score_num_text = text.render("0s", True, 'Black')
+            best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 525))
+            screen.blit(best_score_num_text, best_score_num_text_rect)
+        else:
+            best_score_num_text = text.render(f"{best_score[0] / 1000}s -     {best_score[1]}", True, 'Black')
+            best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 530))
+            screen.blit(best_score_num_text, best_score_num_text_rect)
 
-        screen.blit(best_score_num_text, best_score_num_text_rect)
+            best_score_num_text = text.render(f"{best_score[2] / 1000}s", True, 'Black')
+            best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 590))
+            screen.blit(best_score_num_text, best_score_num_text_rect)
+
+            screen.blit(coin_2, coin_2_rect)
 
         pygame.display.update()
-        clock.tick(70)
+        clock.tick(60)
 
     while level == "level_1":
         #print(move_scene_x, move_scene_y, player_1.x_position, player_1.y_position)
