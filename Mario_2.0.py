@@ -1,4 +1,6 @@
+
 import pygame
+from pymongo import MongoClient
 
 #python -m cProfile -o profile_data.prof Mario_2.0.py
 #snakeviz profile_data.prof
@@ -7,13 +9,13 @@ import pygame
 
 # variables
 # -------------------------
-best_score = [0, 0, 0]
+best_score = 0
 level = "level_1"
 b_size = 75
 b_size = round(b_size)
 p_size_x = (b_size // 5) * 4
 p_size_y = b_size
-track_width = 20000
+track_width = 186 * b_size
 track_height = 1000
 fall_jump = 0
 move_scene_x = 0
@@ -22,13 +24,11 @@ mode = "fall"
 side = "r"
 checkpoints = 0
 objects_on = True
+game_paused = False
+coins_total_menu = 0
 # -------------------------
-#
-#
-#
-#
-#
-#
+
+
 #
 #names
 #-------------------------
@@ -39,41 +39,206 @@ objects_on = True
 #-------------------------
 
 pygame.init()
+pygame.mixer.init()
+collect_coin_sound = pygame.mixer.Sound('collect_sound.wav')
+collect_coin_sound.set_volume(0.1)
+collect_fruit_sound = pygame.mixer.Sound('collect_2_sound.wav')
+collect_fruit_sound.set_volume(0.1)
+music = pygame.mixer.Sound('game_music.mp3')
+music.set_volume(0.2)
 screen = pygame.display.set_mode((1300, 700))
 pygame.display.set_caption('Wonderland Escape')
 
 
 
-player_default = pygame.image.load("stand_1.png").convert_alpha()
-player_default = pygame.transform.scale(player_default, (p_size_x, p_size_y))
-player_stand_1 = pygame.image.load("stand_1.png").convert_alpha()
-player_stand_1 = pygame.transform.scale(player_stand_1, (p_size_x, p_size_y))
-player_stand_2 = pygame.image.load("stand_2.png").convert_alpha()
-player_stand_2 = pygame.transform.scale(player_stand_2, (p_size_x, p_size_y))
-player_standing = [player_stand_1 for _ in range(10)] + [player_stand_2 for _ in range(10)]
-player_run_1 = pygame.image.load("run_1.png").convert_alpha()
-player_run_1 = pygame.transform.scale(player_run_1, (p_size_x, p_size_y))
-player_run_2 = pygame.image.load("run_2.png").convert_alpha()
-player_run_2 = pygame.transform.scale(player_run_2, (p_size_x, p_size_y))
-player_run_3 = pygame.image.load("run_3.png").convert_alpha()
-player_run_3 = pygame.transform.scale(player_run_3, (p_size_x, p_size_y))
-player_run_4 = pygame.image.load("run_4.png").convert_alpha()
-player_run_4 = pygame.transform.scale(player_run_4, (p_size_x, p_size_y))
-player_run_5 = pygame.image.load("run_5.png").convert_alpha()
-player_run_5 = pygame.transform.scale(player_run_5, (p_size_x, p_size_y))
-player_run_6 = pygame.image.load("run_6.png").convert_alpha()
-player_run_6 = pygame.transform.scale(player_run_6, (p_size_x, p_size_y))
-player_run_7 = pygame.image.load("run_7.png").convert_alpha()
-player_run_7 = pygame.transform.scale(player_run_7, (p_size_x, p_size_y))
-player_run_8 = pygame.image.load("run_8.png").convert_alpha()
-player_run_8 = pygame.transform.scale(player_run_8, (p_size_x, p_size_y))
-player_running = [player_run_1, player_run_2, player_run_3, player_run_4, player_run_5, player_run_6, player_run_7, player_run_8]
-player_jump = pygame.image.load("jump.png").convert_alpha()
-player_jump = pygame.transform.scale(player_jump, (p_size_x, p_size_y))
-player_wall_jump = pygame.image.load("wall_jump.png").convert_alpha()
-player_wall_jump = pygame.transform.scale(player_wall_jump, (p_size_x, p_size_y))
-player_fall = pygame.image.load("fall.png").convert_alpha()
-player_fall = pygame.transform.scale(player_fall, (p_size_x, p_size_y))
+# player_default = pygame.image.load("stand_1.png").convert_alpha()
+# player_default = pygame.transform.scale(player_default, (p_size_x, p_size_y))
+# player_stand_1 = pygame.image.load("stand_1.png").convert_alpha()
+# player_stand_1 = pygame.transform.scale(player_stand_1, (p_size_x, p_size_y))
+# player_stand_2 = pygame.image.load("stand_2.png").convert_alpha()
+# player_stand_2 = pygame.transform.scale(player_stand_2, (p_size_x, p_size_y))
+# player_standing = [player_stand_1 for _ in range(10)] + [player_stand_2 for _ in range(10)]
+# player_run_1 = pygame.image.load("run_1.png").convert_alpha()
+# player_run_1 = pygame.transform.scale(player_run_1, (p_size_x, p_size_y))
+# player_run_2 = pygame.image.load("run_2.png").convert_alpha()
+# player_run_2 = pygame.transform.scale(player_run_2, (p_size_x, p_size_y))
+# player_run_3 = pygame.image.load("run_3.png").convert_alpha()
+# player_run_3 = pygame.transform.scale(player_run_3, (p_size_x, p_size_y))
+# player_run_4 = pygame.image.load("run_4.png").convert_alpha()
+# player_run_4 = pygame.transform.scale(player_run_4, (p_size_x, p_size_y))
+# player_run_5 = pygame.image.load("run_5.png").convert_alpha()
+# player_run_5 = pygame.transform.scale(player_run_5, (p_size_x, p_size_y))
+# player_run_6 = pygame.image.load("run_6.png").convert_alpha()
+# player_run_6 = pygame.transform.scale(player_run_6, (p_size_x, p_size_y))
+# player_run_7 = pygame.image.load("run_7.png").convert_alpha()
+# player_run_7 = pygame.transform.scale(player_run_7, (p_size_x, p_size_y))
+# player_run_8 = pygame.image.load("run_8.png").convert_alpha()
+# player_run_8 = pygame.transform.scale(player_run_8, (p_size_x, p_size_y))
+# player_running = [player_run_1, player_run_2, player_run_3, player_run_4, player_run_5, player_run_6, player_run_7, player_run_8]
+# player_jump = pygame.image.load("jump.png").convert_alpha()
+# player_jump = pygame.transform.scale(player_jump, (p_size_x, p_size_y))
+# player_wall_jump = pygame.image.load("wall_jump.png").convert_alpha()
+# player_wall_jump = pygame.transform.scale(player_wall_jump, (p_size_x, p_size_y))
+# player_fall = pygame.image.load("fall.png").convert_alpha()
+# player_fall = pygame.transform.scale(player_fall, (p_size_x, p_size_y))
+
+
+mask_run_list = [
+pygame.image.load("mask_run_1.png").convert_alpha(),
+pygame.image.load("mask_run_2.png").convert_alpha(),
+pygame.image.load("mask_run_5.png").convert_alpha(),
+pygame.image.load("mask_run_7.png").convert_alpha(),
+pygame.image.load("mask_run_8.png").convert_alpha(),
+pygame.image.load("mask_run_11.png").convert_alpha()
+]
+mask_run_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in mask_run_list]
+mask_running = [mask_run_list[0], mask_run_list[1], mask_run_list[1], mask_run_list[0], mask_run_list[2], mask_run_list[2], mask_run_list[3], mask_run_list[4], mask_run_list[4], mask_run_list[3], mask_run_list[5], mask_run_list[5]]
+
+# mask_stand_list = [
+# pygame.image.load("mask_stand_1.png").convert_alpha(),
+# pygame.image.load("mask_stand_2.png").convert_alpha(),
+# ]
+# mask_stand_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in mask_stand_list]
+# mask_standing = [mask_stand_list[0] for _ in range(10)] + [mask_stand_list[1] for _ in range(10)]
+
+mask_stand_list = [
+pygame.image.load("mask_stand_1.png").convert_alpha(),
+pygame.image.load("mask_stand_2.png").convert_alpha(),
+pygame.image.load("mask_stand_3.png").convert_alpha(),
+pygame.image.load("mask_stand_4.png").convert_alpha()
+]
+mask_stand_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in mask_stand_list]
+mask_standing = [mask_stand_list[0] for _ in range(5)] + [mask_stand_list[1] for _ in range(5)] + [mask_stand_list[2] for _ in range(5)] + [mask_stand_list[3] for _ in range(5)]
+
+mask_jump = pygame.image.load("mask_jump.png").convert_alpha()
+mask_jump = pygame.transform.scale(mask_jump, (p_size_x, p_size_y))
+
+mask_fall = pygame.image.load("mask_fall.png").convert_alpha()
+mask_fall = pygame.transform.scale(mask_fall, (p_size_x, p_size_y))
+
+mask_wall = pygame.image.load("mask_wall.png").convert_alpha()
+mask_wall = pygame.transform.scale(mask_wall, (p_size_x, p_size_y))
+
+mask_pictures = [mask_running, mask_standing, mask_jump, mask_fall, mask_wall]
+
+
+
+ninja_run_list = [
+pygame.image.load("ninja_run_1.png").convert_alpha(),
+pygame.image.load("ninja_run_2.png").convert_alpha(),
+pygame.image.load("ninja_run_5.png").convert_alpha(),
+pygame.image.load("ninja_run_7.png").convert_alpha(),
+pygame.image.load("ninja_run_8.png").convert_alpha(),
+pygame.image.load("ninja_run_11.png").convert_alpha()
+]
+ninja_run_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in ninja_run_list]
+ninja_running = [ninja_run_list[0], ninja_run_list[1], ninja_run_list[1], ninja_run_list[0], ninja_run_list[2], ninja_run_list[2], ninja_run_list[3], ninja_run_list[4], ninja_run_list[4], ninja_run_list[3], ninja_run_list[5], ninja_run_list[5]]
+
+# ninja_stand_list = [
+# pygame.image.load("ninja_stand_1.png").convert_alpha(),
+# pygame.image.load("ninja_stand_2.png").convert_alpha(),
+# ]
+# ninja_stand_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in ninja_stand_list]
+# ninja_standing = [ninja_stand_list[0] for _ in range(10)] + [ninja_stand_list[1] for _ in range(10)]
+
+ninja_stand_list = [
+pygame.image.load("ninja_stand_1.png").convert_alpha(),
+pygame.image.load("ninja_stand_2.png").convert_alpha(),
+pygame.image.load("ninja_stand_3.png").convert_alpha(),
+pygame.image.load("ninja_stand_4.png").convert_alpha()
+]
+ninja_stand_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in ninja_stand_list]
+ninja_standing = [ninja_stand_list[0] for _ in range(5)] + [ninja_stand_list[1] for _ in range(5)] + [ninja_stand_list[2] for _ in range(5)] + [ninja_stand_list[3] for _ in range(5)]
+
+ninja_jump = pygame.image.load("ninja_jump.png").convert_alpha()
+ninja_jump = pygame.transform.scale(ninja_jump, (p_size_x, p_size_y))
+
+ninja_fall = pygame.image.load("ninja_fall.png").convert_alpha()
+ninja_fall = pygame.transform.scale(ninja_fall, (p_size_x, p_size_y))
+
+ninja_wall = pygame.image.load("ninja_wall.png").convert_alpha()
+ninja_wall = pygame.transform.scale(ninja_wall, (p_size_x, p_size_y))
+
+ninja_pictures = [ninja_running, ninja_standing, ninja_jump, ninja_fall, ninja_wall]
+
+
+
+
+pink_run_list = [
+pygame.image.load("pink_run_1.png").convert_alpha(),
+pygame.image.load("pink_run_2.png").convert_alpha(),
+pygame.image.load("pink_run_5.png").convert_alpha(),
+pygame.image.load("pink_run_7.png").convert_alpha(),
+pygame.image.load("pink_run_8.png").convert_alpha(),
+pygame.image.load("pink_run_11.png").convert_alpha()
+]
+pink_run_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in pink_run_list]
+pink_running = [pink_run_list[0], pink_run_list[1], pink_run_list[1], pink_run_list[0], pink_run_list[2], pink_run_list[2], pink_run_list[3], pink_run_list[4], pink_run_list[4], pink_run_list[3], pink_run_list[5], pink_run_list[5]]
+
+# pink_stand_list = [
+# pygame.image.load("pink_stand_1.png").convert_alpha(),
+# pygame.image.load("pink_stand_2.png").convert_alpha(),
+# pygame.image.load("pink_stand_3.png").convert_alpha()
+# ]
+# pink_stand_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in pink_stand_list]
+# pink_standing = [pink_stand_list[0] for _ in range(5)] + [pink_stand_list[1] for _ in range(5)] + [pink_stand_list[2] for _ in range(5)] + [pink_stand_list[1] for _ in range(5)]
+
+pink_stand_list = [
+pygame.image.load("pink_stand_1.png").convert_alpha(),
+pygame.image.load("pink_stand_2.png").convert_alpha(),
+pygame.image.load("pink_stand_3.png").convert_alpha(),
+pygame.image.load("pink_stand_4.png").convert_alpha()
+]
+pink_stand_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in pink_stand_list]
+pink_standing = [pink_stand_list[0] for _ in range(5)] + [pink_stand_list[1] for _ in range(5)] + [pink_stand_list[2] for _ in range(5)] + [pink_stand_list[3] for _ in range(5)]
+
+pink_jump = pygame.image.load("pink_jump.png").convert_alpha()
+pink_jump = pygame.transform.scale(pink_jump, (p_size_x, p_size_y))
+
+pink_fall = pygame.image.load("pink_fall.png").convert_alpha()
+pink_fall = pygame.transform.scale(pink_fall, (p_size_x, p_size_y))
+
+pink_wall = pygame.image.load("pink_wall.png").convert_alpha()
+pink_wall = pygame.transform.scale(pink_wall, (p_size_x, p_size_y))
+
+pink_pictures = [pink_running, pink_standing, pink_jump, pink_fall, pink_wall]
+
+
+
+virtual_run_list = [
+pygame.image.load("virtual_run_1.png").convert_alpha(),
+pygame.image.load("virtual_run_2.png").convert_alpha(),
+pygame.image.load("virtual_run_5.png").convert_alpha(),
+pygame.image.load("virtual_run_7.png").convert_alpha(),
+pygame.image.load("virtual_run_8.png").convert_alpha(),
+pygame.image.load("virtual_run_11.png").convert_alpha()
+]
+virtual_run_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in virtual_run_list]
+virtual_running = [virtual_run_list[0], virtual_run_list[1], virtual_run_list[1], virtual_run_list[0], virtual_run_list[2], virtual_run_list[2], virtual_run_list[3], virtual_run_list[4], virtual_run_list[4], virtual_run_list[3], virtual_run_list[5], virtual_run_list[5]]
+
+virtual_stand_list = [
+pygame.image.load("virtual_stand_1.png").convert_alpha(),
+pygame.image.load("virtual_stand_2.png").convert_alpha(),
+pygame.image.load("virtual_stand_3.png").convert_alpha(),
+pygame.image.load("virtual_stand_4.png").convert_alpha()
+]
+virtual_stand_list = [pygame.transform.scale(x, (p_size_x, p_size_y)) for x in virtual_stand_list]
+virtual_standing = [virtual_stand_list[0] for _ in range(5)] + [virtual_stand_list[1] for _ in range(5)] + [virtual_stand_list[2] for _ in range(5)] + [virtual_stand_list[3] for _ in range(5)]
+
+virtual_jump = pygame.image.load("virtual_jump.png").convert_alpha()
+virtual_jump = pygame.transform.scale(virtual_jump, (p_size_x, p_size_y))
+
+virtual_fall = pygame.image.load("virtual_fall.png").convert_alpha()
+virtual_fall = pygame.transform.scale(virtual_fall, (p_size_x, p_size_y))
+
+virtual_wall = pygame.image.load("virtual_wall.png").convert_alpha()
+virtual_wall = pygame.transform.scale(virtual_wall, (p_size_x, p_size_y))
+
+virtual_pictures = [virtual_running, virtual_standing, virtual_jump, virtual_fall, virtual_wall]
+
+player_pictures = pink_pictures
+
+
 
 ground_grass = pygame.image.load("Grass.png").convert_alpha()
 ground_grass = pygame.transform.scale(ground_grass, (b_size, b_size))
@@ -121,8 +286,8 @@ mushroom_6 = pygame.transform.scale(mushroom_6, (45, 50))
 mushroom_7 = pygame.image.load("mushroom_8.png").convert_alpha()
 mushroom_7 = pygame.transform.scale(mushroom_7, (45, 50))
 
-horse_size_x = b_size
-horse_size_y = b_size + b_size // 2
+horse_size_x = b_size * 2
+horse_size_y = b_size * 2
 horse_run_1 = pygame.image.load("horse_run_1.png").convert_alpha()
 horse_run_1 = pygame.transform.scale(horse_run_1, (horse_size_x, horse_size_y))  # (186, 138)
 horse_run_2 = pygame.image.load("horse_run_2.png").convert_alpha()
@@ -197,7 +362,7 @@ jump_pad_5 = pygame.transform.scale(jump_pad_5, (b_size, b_size * 1.1))
 jump_pad_default_2 = pygame.image.load("Apple.png")
 jump_pad_default_2 = pygame.transform.scale(jump_pad_default_2, (b_size // 3, b_size // 3))
 
-expand_plat_i = 1
+expand_plat_i = b_size - b_size // 4
 expand_plat_original = pygame.image.load("Plat_Thin_Wood.png")
 expand_plat_default = pygame.transform.scale(expand_plat_original, (expand_plat_i, b_size / 5))
 expand_plat_default_2 = pygame.image.load("Cherry.png")
@@ -266,42 +431,67 @@ class Object:
         return self.return_s
 
     def ObjectRight(self, surface):
+        # TF = any(surface.right == i.MakeRect2("l") and surface.bottom > i.MakeRect2("t") and surface.top < i.MakeRect2("b") for i in touch_objects)
+        # if not TF: TF = any(surface.right == i.MakeRect(i.default).left and surface.bottom > i.MakeRect(i.default).top and surface.top < i.MakeRect(i.default).bottom and i.work for i in fly_plats + jump_pads + expand_plats)
+        # if not TF: TF = any(surface.right == i.MakeRect2("l") and surface.bottom > i.MakeRect2("t") and surface.top < i.MakeRect2("b") for i in bricks)
+
         TF = False
-        for i in set(touch_objects) - set(fly_plats) - set(jump_pads) - set(expand_plats):
+        for i in touch_objects + boxes:
             if surface.right == i.MakeRect2("l") and surface.bottom > i.MakeRect2("t") and surface.top < i.MakeRect2("b"):
                 TF = True
         for i in fly_plats + jump_pads + expand_plats:
             if surface.right == i.MakeRect(i.default).left and surface.bottom > i.MakeRect(i.default).top and surface.top < i.MakeRect(i.default).bottom and i.work:
                 TF = True
+        # for i in bricks:
+        #     if surface.right == i.MakeRect2("l") and surface.bottom > i.MakeRect2("t") and surface.top < i.MakeRect2("b"):
+        #         TF = True
         return TF
 
     def ObjectLeft(self, surface):
+        # TF = any(surface.left == i.MakeRect2("r") and surface.bottom > i.MakeRect2("t") and surface.top < i.MakeRect2("b") for i in touch_objects)
+        # if not TF: TF = any(surface.left == i.MakeRect(i.default).right and surface.bottom > i.MakeRect(i.default).top and surface.top < i.MakeRect(i.default).bottom and i.work for i in fly_plats + jump_pads + expand_plats)
+        # if not TF: TF = any(surface.left == i.MakeRect2("r") and surface.bottom > i.MakeRect2("t") and surface.top < i.MakeRect2("b") for i in bricks)
+
         TF = False
-        for i in set(touch_objects) - set(fly_plats) - set(jump_pads) - set(expand_plats):
+        for i in touch_objects + boxes:
             if surface.left == i.MakeRect2("r") and surface.bottom > i.MakeRect2("t") and surface.top < i.MakeRect2("b"):
                 TF = True
         for i in fly_plats + jump_pads + expand_plats:
             if surface.left == i.MakeRect(i.default).right and surface.bottom > i.MakeRect(i.default).top and surface.top < i.MakeRect(i.default).bottom  and i.work:
                 TF = True
+        # for i in bricks:
+        #     if surface.left == i.MakeRect2("r") and surface.bottom > i.MakeRect2("t") and surface.top < i.MakeRect2("b"):
+        #         TF = True
         return TF
 
     def ObjectUp(self, surface):
+        # TF = any(surface.top == i.MakeRect2("b") and surface.left < i.MakeRect2("r") and surface.right > i.MakeRect2("l") for i in touch_objects)
+        # if not TF: TF = any(surface.top == i.MakeRect(i.default).bottom and surface.left < i.MakeRect(i.default).right and surface.right > i.MakeRect(i.default).left and i.work for i in fly_plats + jump_pads + expand_plats)
+        # if not TF: TF = any(surface.top == i.MakeRect2("b") and surface.left < i.MakeRect2("r") and surface.right > i.MakeRect2("l") for i in bricks)
+
         TF = False
-        for i in set(touch_objects) - set(fly_plats) - set(jump_pads) - set(expand_plats):
+        for i in touch_objects + boxes:
             if surface.top == i.MakeRect2("b") and surface.left < i.MakeRect2("r") and surface.right > i.MakeRect2("l"):
                 TF = True
         for i in fly_plats + jump_pads + expand_plats:
             if surface.top == i.MakeRect(i.default).bottom and surface.left < i.MakeRect(i.default).right and surface.right > i.MakeRect(i.default).left  and i.work:
                 TF = True
+        # for i in bricks:
+        #     if surface.top == i.MakeRect2("b") and surface.left < i.MakeRect2("r") and surface.right > i.MakeRect2("l"):
+        #         TF = True
         return TF
 
     def ObjectDown(self, surface, width = 0):
+        # TF = any(surface.bottom == i.MakeRect2("t") and surface.left + width < i.MakeRect2("r") and surface.right + width > i.MakeRect2("l") for i in touch_objects)
+        # if not TF: TF = any(surface.bottom == i.MakeRect(i.default).top and surface.left + width < i.MakeRect(i.default).right and surface.right + width > i.MakeRect(i.default).left and i.work for i in fly_plats + jump_pads + expand_plats)
+        # if not TF: TF = any(surface.bottom == i.MakeRect2("t") and surface.left + width < i.MakeRect2("r") and surface.right + width > i.MakeRect2("l") for i in bricks)
+
         TF = False
-        for i in set(touch_objects) - set(fly_plats) - set(jump_pads) - set(expand_plats):
+        for i in touch_objects + boxes:
             if surface.bottom == i.MakeRect2("t") and surface.left + width < i.MakeRect2("r") and surface.right + width > i.MakeRect2("l"):
                 TF = True
         for i in fly_plats + jump_pads + expand_plats:
-            if surface.bottom == i.MakeRect(i.default).top and surface.left + width < i.MakeRect(i.default).right and surface.right + width > i.MakeRect(i.default).left  and i.work:
+            if surface.bottom == i.MakeRect(i.default).top and surface.left + width < i.MakeRect(i.default).right and surface.right + width > i.MakeRect(i.default).left and i.work:
                 TF = True
         return TF
 
@@ -325,30 +515,33 @@ class Player(Object):
     Character that will move on screen
     """
     def __init__(self, x_pos, y_pos):
-        super().__init__(x_pos, y_pos)
+        # super().__init__(x_pos, y_pos)
 
-        self.transparency = 0
+        self.x_position = x_pos
+        self.y_position = y_pos
 
-        self.default = player_default
-        self.stand_1 = player_stand_1
-        self.stand_2 = player_stand_2
+        self.transparency = 255
 
-        self.standing = [player_stand_1 for _ in range(10)] + [player_stand_2 for _ in range(10)]
-
-        self.run_1 = player_run_1
-        self.run_2 = player_run_2
-        self.run_3 = player_run_3
-        self.run_4 = player_run_4
-        self.run_5 = player_run_5
-        self.run_6 = player_run_6
-        self.run_7 = player_run_7
-        self.run_8 = player_run_8
-
-        self.running = [player_run_1, player_run_2, player_run_3, player_run_4, player_run_5, player_run_6, player_run_7, player_run_8]
-
-        self.jump = player_jump
-        self.wall_jump = player_wall_jump
-        self.fall = player_fall
+        # self.default = player_default
+        # self.stand_1 = player_stand_1
+        # self.stand_2 = player_stand_2
+        #
+        # self.standing = [player_stand_1 for _ in range(10)] + [player_stand_2 for _ in range(10)]
+        #
+        # self.run_1 = player_run_1
+        # self.run_2 = player_run_2
+        # self.run_3 = player_run_3
+        # self.run_4 = player_run_4
+        # self.run_5 = player_run_5
+        # self.run_6 = player_run_6
+        # self.run_7 = player_run_7
+        # self.run_8 = player_run_8
+        #
+        # self.running = [player_run_1, player_run_2, player_run_3, player_run_4, player_run_5, player_run_6, player_run_7, player_run_8]
+        #
+        # self.jump = player_jump
+        # self.wall_jump = player_wall_jump
+        # self.fall = player_fall
 
         self.apples = 0
         self.bananas = 0
@@ -359,22 +552,27 @@ class Player(Object):
 
     def MakeSelfRect(self):
         """Returns a rect of the image"""
-        self.default_rect = self.default.get_rect(bottomleft=(self.x_position, self.y_position))
+        # self.default_rect = self.default.get_rect(bottomleft=(self.x_position, self.y_position))
+        self.default_rect = pygame.Rect(self.x_position, self.y_position - p_size_y, p_size_x, p_size_y)
         return self.default_rect
 
 
     def WallJumpRightTF(self):
-        TF = False
-        for i in touch_objects:
-            if self.MakeSelfRect().right == i.MakeRect(i.default).left and self.MakeSelfRect().bottom < i.MakeRect(i.default).bottom and self.MakeSelfRect().top > i.MakeRect(i.default).top:
-                TF = True
+        TF = any(self.MakeSelfRect().right == i.MakeRect(i.default).left and self.MakeSelfRect().bottom < i.MakeRect(i.default).bottom and self.MakeSelfRect().top > i.MakeRect(i.default).top for i in touch_objects + boxes)
+
+        # TF = False
+        # for i in touch_objects:
+        #     if self.MakeSelfRect().right == i.MakeRect(i.default).left and self.MakeSelfRect().bottom < i.MakeRect(i.default).bottom and self.MakeSelfRect().top > i.MakeRect(i.default).top:
+        #         TF = True
         return TF
 
     def WallJumpLeftTF(self):
-        TF = False
-        for i in touch_objects:
-            if self.MakeSelfRect().left == i.MakeRect(i.default).right and self.MakeSelfRect().bottom < i.MakeRect(i.default).bottom and self.MakeSelfRect().top > i.MakeRect(i.default).top:
-                TF = True
+        TF = any(self.MakeSelfRect().left == i.MakeRect(i.default).right and self.MakeSelfRect().bottom < i.MakeRect(i.default).bottom and self.MakeSelfRect().top > i.MakeRect(i.default).top for i in touch_objects + boxes)
+
+        # TF = False
+        # for i in touch_objects:
+        #     if self.MakeSelfRect().left == i.MakeRect(i.default).right and self.MakeSelfRect().bottom < i.MakeRect(i.default).bottom and self.MakeSelfRect().top > i.MakeRect(i.default).top:
+        #         TF = True
         return TF
 
 
@@ -386,6 +584,8 @@ class Player(Object):
                 for i in range(num // 2):
                     if not x.ObjectRight(x.MakeSelfRect()):
                         x.x_position += 1
+                        x.right += 1
+                        x.left += 1
 
                     if not self.ObjectRight(self.MakeSelfRect()):
                         if self.MakeSelfRect().centerx < 650:  # move_scene == 0 and
@@ -397,12 +597,19 @@ class Player(Object):
 
         for i in range(num):
             if not self.ObjectRight(self.MakeSelfRect()):
-                if self.MakeSelfRect().centerx < 650:  #move_scene == 0 and
-                    self.x_position += 1
-                elif move_scene_x == track_width - 1300 and self.MakeSelfRect().centerx >= 650 and self.MakeSelfRect().right != 1300:
-                    self.x_position += 1
-                elif move_scene_x < track_width - 1300:
-                    move_scene_x += 1
+                TF = any(player_1.MakeSelfRect().right == i.MakeRect2("l") and player_1.MakeSelfRect().bottom > i.MakeRect2("t") and player_1.MakeSelfRect().top < i.MakeRect2("b") for i in bricks)
+
+                # TF = True
+                # for i in bricks:
+                #     if player_1.MakeSelfRect().right == i.MakeRect2("l") and player_1.MakeSelfRect().bottom > i.MakeRect2("t") and player_1.MakeSelfRect().top < i.MakeRect2("b"):
+                #         TF = False
+                if not TF:
+                    if self.MakeSelfRect().centerx < 650:  # move_scene == 0 and
+                        self.x_position += 1
+                    elif move_scene_x == track_width - 1300 and self.MakeSelfRect().centerx >= 650 and self.MakeSelfRect().right != 1300:
+                        self.x_position += 1
+                    elif move_scene_x < track_width - 1300:
+                        move_scene_x += 1
 
     def MoveLeft(self, num = 8):
         """Moves to the left"""
@@ -412,6 +619,8 @@ class Player(Object):
                 for i in range(num // 2):
                     if not x.ObjectLeft(x.MakeSelfRect()):
                         x.x_position -= 1
+                        x.right -= 1
+                        x.left -= 1
 
                     if not self.ObjectLeft(self.MakeSelfRect()):
                         if self.MakeSelfRect().centerx > 650:
@@ -423,12 +632,20 @@ class Player(Object):
 
         for i in range(num):
             if not self.ObjectLeft(self.MakeSelfRect()):
-                if self.MakeSelfRect().centerx > 650:
-                    self.x_position -= 1
-                elif move_scene_x == 0 and self.MakeSelfRect().centerx <= 650 and self.MakeSelfRect().left != 0:
-                    self.x_position -= 1
-                elif move_scene_x > 0:
-                    move_scene_x -= 1
+                TF = any(player_1.MakeSelfRect().left == i.MakeRect2("r") and player_1.MakeSelfRect().bottom > i.MakeRect2("t") and player_1.MakeSelfRect().top < i.MakeRect2("b") for i in bricks)
+
+
+                # TF = False
+                # for i in bricks:
+                #     if player_1.MakeSelfRect().left == i.MakeRect2("r") and player_1.MakeSelfRect().bottom > i.MakeRect2("t") and player_1.MakeSelfRect().top < i.MakeRect2("b"):
+                #         TF = True
+                if not TF:
+                    if self.MakeSelfRect().centerx > 650:
+                        self.x_position -= 1
+                    elif move_scene_x == 0 and self.MakeSelfRect().centerx <= 650 and self.MakeSelfRect().left != 0:
+                        self.x_position -= 1
+                    elif move_scene_x > 0:
+                        move_scene_x -= 1
 
     def Move_Up_Down(self, dir):
         global move_scene_y
@@ -463,22 +680,30 @@ class Player(Object):
                 break
             if num < 0:
                 if not self.ObjectDown(self.MakeSelfRect()):
+                    TF = any(player_1.MakeSelfRect().bottom == i.MakeRect2("t") and player_1.MakeSelfRect().left < i.MakeRect2("r") and player_1.MakeSelfRect().right > i.MakeRect2("l") for i in bricks)
+
                     check_die()
-                    if self.MakeSelfRect().centery > 350:
-                        self.y_position += 1
-                    elif move_scene_y == 0 and self.MakeSelfRect().centery <= 350 and self.MakeSelfRect().bottom != 0:
-                        self.y_position += 1
-                    elif move_scene_y < 0:
-                        move_scene_y += 1
+                    if not TF:
+                        if self.MakeSelfRect().centery > 350:
+                            self.y_position += 1
+                        elif move_scene_y == 0 and self.MakeSelfRect().centery <= 350 and self.MakeSelfRect().bottom != 0:
+                            self.y_position += 1
+                        elif move_scene_y < 0:
+                            move_scene_y += 1
 
             elif num > 0:
                 if not self.ObjectUp(self.MakeSelfRect()):
-                    if self.MakeSelfRect().centery > 350:  # move_scene == 0 and
-                        self.y_position -= 1
-                    elif move_scene_y == track_height - 700 and self.MakeSelfRect().centery <= 350 and self.MakeSelfRect().top != 700:
-                        self.x_position -= 1
-                    elif move_scene_y < track_height - 700:
-                        move_scene_y -= 1
+                    TF = any(player_1.MakeSelfRect().top == i.MakeRect2("b") and player_1.MakeSelfRect().left < i.MakeRect2("r") and player_1.MakeSelfRect().right > i.MakeRect2("l") for i in bricks)
+
+                    if not TF:
+                        if self.MakeSelfRect().centery > 350:  # move_scene == 0 and
+                            self.y_position -= 1
+                        elif move_scene_y == track_height - 700 and self.MakeSelfRect().centery <= 350 and self.MakeSelfRect().top != 700:
+                            self.x_position -= 1
+                        elif move_scene_y < track_height - 700:
+                            move_scene_y -= 1
+                    else:
+                        fall_jump = 0
 
             for x in range(len(horses)):
                 if self.MakeSelfRect().bottom == horses[x].MakeSelfRect().top and self.MakeSelfRect().left < \
@@ -524,6 +749,7 @@ class Player(Object):
                         elif fruits[x].name == "c":
                             self.cherries += 1
                         fruits.pop(x)
+                        collect_fruit_sound.play()
                 except:
                     pass
 
@@ -532,6 +758,7 @@ class Player(Object):
                     if player_1.MakeSelfRect().colliderect(coins[x].MakeSelfRect()):
                         self.coins += 1
                         coins.pop(x)
+                        collect_coin_sound.play()
                 except:
                     pass
 
@@ -551,7 +778,6 @@ class Player(Object):
                     mummys.pop(x)
             except:
                 pass
-
 
 
 class Ground(Object):
@@ -646,7 +872,6 @@ class OrangeBlock(Object):
         return self.MakeRect(self.default)
 
 
-
 class SmallSilverBlock(Object):
     """
     Class that represents ground and grass
@@ -718,7 +943,6 @@ class SmallOrangeBlock(Object):
 
     def MakeSelfRect(self):
         return self.MakeRect(self.default)
-
 
 
 class GoldThickPlat(Object):
@@ -794,7 +1018,6 @@ class OrangeThickPlat(Object):
         return self.MakeRect(self.default)
 
 
-
 class GoldThinPlat(Object):
     """
     Class that represents ground and grass
@@ -851,7 +1074,6 @@ class WoodThinPlat(Object):
         return self.MakeRect(self.default)
 
 
-
 class StartGame(Object):
     def __init__(self, x_pos, y_pos, num):
         super().__init__(x_pos, y_pos)
@@ -873,10 +1095,16 @@ class StartGame(Object):
         return self.MakeRect(self.default)
 
 class Checkpoint(Object):
-    def __init__(self, x_pos, y_pos):
-        super().__init__(x_pos, y_pos)
+    def __init__(self, x_pos, y_pos, TF = False, m = False):
+        # super().__init__(x_pos, y_pos)
 
-        self.checkpoint_TF = False
+        if not m:
+            super().__init__(x_pos, y_pos)
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
+
+        self.checkpoint_TF = TF
 
         self.no_checkpoint = pygame.image.load("Checkpoint_No.png").convert_alpha()
 
@@ -894,15 +1122,18 @@ class Checkpoint(Object):
                               self.checkpoint_5, self.checkpoint_5,
                               self.checkpoint_6, self.checkpoint_6]
 
-        self.default = self.no_checkpoint
-
-
-    def CheckPoint(self):
-        global checkpoints
         if not self.checkpoint_TF:
             self.default = self.no_checkpoint
         else:
             self.default = self.checkpoint_1
+
+
+    def CheckPoint(self):
+        global checkpoints
+        # if not self.checkpoint_TF:
+        #     self.default = self.no_checkpoint
+        # else:
+        #     self.default = self.checkpoint_1
         if not self.checkpoint_TF:
             if player_1.MakeSelfRect().colliderect(self.MakeSelfRect()):
                 self.checkpoint_TF = True
@@ -932,7 +1163,7 @@ class EndGame(Object):
         return self.MakeRect(self.default)
 
     def CheckPressed(self):
-        if self.MakeSelfRect().top == player_1.rect.bottom and self.MakeSelfRect().left < player_1.rect.right and self.MakeSelfRect().right > player_1.rect.left:
+        if self.MakeSelfRect().top == player_1.MakeSelfRect().bottom and self.MakeSelfRect().left < player_1.MakeSelfRect().right and self.MakeSelfRect().right > player_1.MakeSelfRect().left:
             return True
         else:
             return False
@@ -941,32 +1172,48 @@ class EndGame(Object):
         if self.CheckPressed():
             if self.default == self.end_1:
                 self.default = self.end_2
-            elif self.default == self.end_2:
-                self.default = self.end_3
-            elif self.default == self.end_3:
-                global level
-                global best_score
-                over_game_time = pygame.time.get_ticks()
-                if best_score[2] == 0:
-                    best_score[0] = over_game_time - start_game_time
-                    best_score[1] = player_1.coins
-                    best_score[2] = over_game_time - start_game_time - player_1.coins * 1000
-                else:
-                    if over_game_time - start_game_time - player_1.coins < best_score[2]:
-                        best_score[0] = over_game_time - start_game_time
-                        best_score[1] = player_1.coins
-                        best_score[2] = over_game_time - start_game_time - player_1.coins * 1000
-                level = "menu"
-
+        if self.default == self.end_2:
+            self.default = self.end_3
+        elif self.default == self.end_3:
+            global level
+            global best_score
+            global coins_total_menu
+            coins_total_menu += player_1.coins
+            timer.End()
+            if best_score == 0:
+                best_score = timer.Show()
+            else:
+                if timer.Show() < best_score:
+                    best_score = timer.Show()
+            reset_database()
+            level = "menu"
 
 
 class Snake(Object):
-    def __init__(self, x_pos, y_pos, pos_2):
-        super().__init__(x_pos, y_pos)
-        self.position_1 = self.x_position
-        self.position_2 = (pos_2 * b_size) - b_size
+    def __init__(self, x_pos, y_pos, pos_2, pos_1 = -1, side = "r", m = False):
+        # super().__init__(x_pos, y_pos)
+        # if pos_1 == -1:
+        #     self.position_1 = self.x_position
+        # else:
+        #     self.position_1 = pos_1
+        # self.position_2 = (pos_2 * b_size) - b_size
+        #
+        # self.side = "r"
 
-        self.side = "r"
+        if not m:
+            super().__init__(x_pos, y_pos)
+            self.position_2 = (pos_2 * b_size)
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
+            self.position_2 = pos_2
+
+        if pos_1 == -1:
+            self.position_1 = self.x_position
+        else:
+            self.position_1 = pos_1
+
+        self.side = side
 
         self.default = snake_default
         self.snake_1 = snake_1
@@ -983,7 +1230,7 @@ class Snake(Object):
     def Move(self):
         for _ in range(3):
             if self.side == "r":
-                if self.MakeSelfRect().left + move_scene_x != self.position_2:
+                if self.MakeSelfRect().right + move_scene_x != self.position_2:
                     self.x_position += 1
                 else:
                     self.side = "l"
@@ -1014,12 +1261,21 @@ class Snake(Object):
         #             self.side = "r"
 
 class Mushroom(Object):
-    def __init__(self, x_pos, y_pos, pos_2):
-        super().__init__(x_pos, y_pos)
-        self.position_1 = self.x_position
-        self.position_2 = (pos_2 * b_size) - b_size
+    def __init__(self, x_pos, y_pos, pos_2, pos_1 = -1, side = "r", m = False):
+        if not m:
+            super().__init__(x_pos, y_pos)
+            self.position_2 = (pos_2 * b_size)
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
+            self.position_2 = pos_2
 
-        self.side = "r"
+        if pos_1 == -1:
+            self.position_1 = self.x_position
+        else:
+            self.position_1 = pos_1
+
+        self.side = side
 
         self.default = mushroom_default
         self.mushroom_1 = mushroom_1
@@ -1056,7 +1312,7 @@ class Mushroom(Object):
     def Move(self):
         for _ in range(5):
             if self.side == "r":
-                if self.MakeSelfRect().left + move_scene_x != self.position_2:
+                if self.MakeSelfRect().right + move_scene_x != self.position_2:
                     self.x_position += 1
                 else:
                     self.side = "l"
@@ -1090,28 +1346,48 @@ class Mushroom(Object):
         #             self.side = "r"
 
 class Horse(Object):
-    def __init__(self, x_pos, y_pos):
-        super().__init__(x_pos, y_pos)
+    def __init__(self, x_pos, y_pos, pos_2, pos_1 = -1, side = "r", m = False, lives = 4):
+        # super().__init__(x_pos, y_pos)
+        # if pos_1 == -1:
+        #     self.position_1 = self.x_position
+        # else:
+        #     self.position_1 = pos_1
+        # self.position_2 = (pos_2 * b_size) - b_size
 
-        self.lives = 4
+        if not m:
+            super().__init__(x_pos, y_pos)
+            self.position_2 = (pos_2 * b_size)
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
+            self.position_2 = pos_2
+
+        if pos_1 == -1:
+            self.position_1 = self.x_position
+        else:
+            self.position_1 = pos_1
+
+        self.side = side
+
+        self.lives = lives
 
         self.size_x = b_size * 2
-        self.size_y = b_size + b_size // 2
+        self.size_y = b_size * 2
 
-        self.side = "r"
+        # self.side = "r"
 
         self.run_1 = horse_run_1
-        self.run_2 = horse_run_1
-        self.run_3 = horse_run_1
-        self.run_4 = horse_run_1
-        self.run_5 = horse_run_1
-        self.run_6 = horse_run_1
+        self.run_2 = horse_run_2
+        self.run_3 = horse_run_3
+        self.run_4 = horse_run_4
+        self.run_5 = horse_run_5
+        self.run_6 = horse_run_6
 
         self.hit_1 = horse_hit_1
         self.hit_2 = horse_hit_2
-        self.hit_3 = horse_hit_2
-        self.hit_4 = horse_hit_2
-        self.hit_5 = horse_hit_2
+        self.hit_3 = horse_hit_3
+        self.hit_4 = horse_hit_4
+        self.hit_5 = horse_hit_5
 
         self.default = self.run_1
 
@@ -1119,7 +1395,6 @@ class Horse(Object):
         self.hit = [self.hit_1, self.hit_2, self.hit_3, self.hit_4, self.hit_5]
 
         self.default_to_die = False
-
 
 
     def CheckMode(self):
@@ -1176,48 +1451,76 @@ class Horse(Object):
 
     def Move(self):
         if self.default not in self.hit:
-            if self.side == "r":
-                for i in range(2):
-                    if not self.ObjectRight(self.MakeSelfRect()) and self.FallRight(self.MakeSelfRect()):
-                        if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
-                            self.side = "l"
-                        else:
-                            self.x_position += 1
+            for _ in range(3):
+                if self.side == "r":
+                    if self.MakeSelfRect().right + move_scene_x != self.position_2:
+                        self.x_position += 1
                     else:
                         self.side = "l"
 
-            elif self.side == "l":
-                for i in range(2):
-                    if not self.ObjectLeft(self.MakeSelfRect()) and self.FallLeft(self.MakeSelfRect()):
-                        if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
-                            self.side = "r"
-                        else:
-                            self.x_position -= 1
+                else:
+                    if self.MakeSelfRect().left + move_scene_x != self.position_1:
+                        self.x_position -= 1
                     else:
                         self.side = "r"
-
-        else:
-            if self.side == "r":
-                pass
-
-            elif self.side == "l":
-                pass
+        # if self.default not in self.hit:
+        #     if self.side == "r":
+        #         for i in range(2):
+        #             if not self.ObjectRight(self.MakeSelfRect()) and self.FallRight(self.MakeSelfRect()):
+        #                 if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
+        #                     self.side = "l"
+        #                 else:
+        #                     self.x_position += 1
+        #             else:
+        #                 self.side = "l"
+        #
+        #     elif self.side == "l":
+        #         for i in range(2):
+        #             if not self.ObjectLeft(self.MakeSelfRect()) and self.FallLeft(self.MakeSelfRect()):
+        #                 if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
+        #                     self.side = "r"
+        #                 else:
+        #                     self.x_position -= 1
+        #             else:
+        #                 self.side = "r"
+        #
+        # else:
+        #     if self.side == "r":
+        #         pass
+        #
+        #     elif self.side == "l":
+        #         pass
 
 class Mummy(Object):
-    def __init__(self, x_pos, y_pos, pos_1, pos_2):
-        super().__init__(x_pos, y_pos)
+    def __init__(self, x_pos, y_pos, pos_2, pos_1 = -1, side = "r", m = False, lives = 5):
+        # super().__init__(x_pos, y_pos)
+        #
+        # self.position_1 = (pos_1 * b_size) - b_size
+        # self.position_2 = (pos_2 * b_size) - b_size
 
-        self.position_1 = (pos_1 * b_size) - b_size
-        self.position_2 = (pos_2 * b_size) - b_size
+        if not m:
+            super().__init__(x_pos, y_pos)
+            self.position_2 = (pos_2 * b_size)
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
+            self.position_2 = pos_2
+
+        if pos_1 == -1:
+            self.position_1 = self.x_position
+        else:
+            self.position_1 = pos_1
+
+        self.side = side
 
         self.size_x = b_size * 1.5
         self.size_y = b_size * 2
 
-        self.lives = 5
+        self.lives = lives
 
-        self.mode = "run"
+        self.mode = "stand"
 
-        self.side = "l"
+        # self.side = "l"
 
         self.run_1 = mum_run_1
         self.run_2 = mum_run_2
@@ -1237,39 +1540,35 @@ class Mummy(Object):
 
         self.default = self.run_1
 
-        self.run = [self.run_1] * 3 + [self.run_2] * 3 + [self.run_3] * 3 + [self.run_4] * 3 + [self.run_5] * 3 + [self.run_6] * 3
-        # + [self.run_3] * 3 + [self.run_4] * 3 + [self.run_5] * 3 + [self.run_6] * 3
+        self.run = [self.run_1] * 2 + [self.run_2] * 2 + [self.run_3] * 2 + [self.run_4] * 2 + [self.run_5] * 2 + [self.run_6] * 2
         self.hit = [self.hit_1, self.hit_2, self.hit_3, self.hit_4, self.hit_5]
+        self.stand = [self.stand_1] * 4 + [self.stand_2] * 4
 
         self.default_to_die = False
 
 
-
     def CheckMode(self):
         if self.side == "r":
-            if player_1.MakeSelfRect().left <= self.MakeSelfRect().right + 35 and player_1.MakeSelfRect().left >= self.MakeSelfRect().right and player_1.MakeSelfRect().top < self.MakeSelfRect().bottom and player_1.MakeSelfRect().bottom > self.MakeSelfRect().top:
+            if player_1.MakeSelfRect().left <= self.MakeSelfRect().right + b_size // 2 and player_1.MakeSelfRect().left >= self.MakeSelfRect().right and player_1.MakeSelfRect().top < self.MakeSelfRect().bottom and player_1.MakeSelfRect().bottom > self.MakeSelfRect().top:
                 if self.default not in self.hit:
                     self.default = self.hit_1
-            else:
-                pass
-                # self.mode = "run"
-
         elif self.side == "l":
-            if player_1.MakeSelfRect().right >= self.MakeSelfRect().left - 35 and player_1.MakeSelfRect().right <= self.MakeSelfRect().left and player_1.MakeSelfRect().top < self.MakeSelfRect().bottom and player_1.MakeSelfRect().bottom > self.MakeSelfRect().top:
+            if player_1.MakeSelfRect().right >= self.MakeSelfRect().left - b_size // 2 and player_1.MakeSelfRect().right <= self.MakeSelfRect().left and player_1.MakeSelfRect().top < self.MakeSelfRect().bottom and player_1.MakeSelfRect().bottom > self.MakeSelfRect().top:
                 if self.default not in self.hit:
                     self.default = self.hit_1
-            else:
-                pass
-                # self.mode = "run"
 
-        # return self.mode
+        if self.side == "l":
+            if self.MakeSelfRect().right - move_scene_x - b_size * 2 <= self.position_1 and self.default not in self.stand:
+                self.default = self.stand[0]
+        elif self.side == "r":
+            if self.MakeSelfRect().left + move_scene_x + b_size * 2 >= self.position_2 and self.default not in self.stand:
+                self.default = self.stand[0]
 
     def ChangeDefault(self):
         if self.default in self.run:
             self.default = self.run[0]
             self.run.append(self.run[0])
             self.run.pop(0)
-            # self.default not in self.hit
 
         else:
             if self.default == self.hit_1:
@@ -1299,60 +1598,78 @@ class Mummy(Object):
 
     def Move(self):
         if self.default not in self.hit:
-            if self.side == "r":
-                for i in range(3):
-                    if self.MakeSelfRect().left + move_scene_x != self.position_2:
-                        if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
-                            self.side = "l"
-                        else:
-                            self.x_position += 1
+            for i in range(3):
+                if player_1.MakeSelfRect().right < self.MakeSelfRect().left:
+                    self.side = "l"
+                    if self.MakeSelfRect().right - move_scene_x - b_size * 2 > self.position_1:
+                        self.x_position -= 1
                     else:
-                        self.side = "l"
-                        self.x_position -= 30
-
-
-            elif self.side == "l":
-                for i in range(3):
-                    if self.MakeSelfRect().right - move_scene_x != self.position_1:
-                        if move_scene_x == track_width - 1300 and self.MakeSelfRect().right == 1300:
-                            self.side = "r"
-                        else:
-                            self.x_position -= 1
+                        self.mode = "stand"
+                elif player_1.MakeSelfRect().left < self.MakeSelfRect().right:
+                    self.side = "r"
+                    if self.MakeSelfRect().left + move_scene_x + b_size * 2 < self.position_2:
+                        self.x_position += 1
                     else:
-                        self.side = "r"
-                        self.x_position += 30
+                        self.mode = "stand"
 
-        else:
-            if self.side == "r":
-                pass
-
-            elif self.side == "l":
-                pass
-
+        # if self.default not in self.hit:
+        #     if self.side == "r":
+        #         for i in range(3):
+        #             if self.MakeSelfRect().left + move_scene_x + b_size * 2 < self.position_2:
+        #                 self.x_position += 1
+        #
+        #
+        #     elif self.side == "l":
+        #         for i in range(3):
+        #             if self.MakeSelfRect().right - move_scene_x - b_size * 2 > self.position_1:
+        #                 self.x_position -= 1
 
 
 class FlyPlat(Object):
-    def __init__(self, x_pos, y_pos, pos, fly, num = 5):
-        super().__init__(x_pos, y_pos)
+    def __init__(self, x_pos, y_pos, pos_2, fly, pos_1 = -1, work = objects_on, dir = -1, m = False):
+        # super().__init__(x_pos, y_pos)
 
         # self.position_1 = (pos_1 * b_size) - b_size
         # self.position_2 = 700 - ((pos_2 * b_size) - b_size)
 
-        self.work = objects_on
+        if not m:
+            super().__init__(x_pos, y_pos)
+            self.position_2 = (pos_2 * b_size) - b_size
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
+            self.position_2 = pos_2
+
+        if pos_1 == -1:
+            self.position_1 = self.x_position
+        else:
+            self.position_1 = pos_1
+
+        self.work = work
 
         self.transparency = 125
 
         self.fly = fly
-        self.num = num
+        self.num = 5
 
-        if fly == "RightLeft":
-            self.position_1 = self.x_position
-            self.position_2 = (pos * b_size) - b_size
-            self.direction = "r"
+        if dir == -1:
+            if fly == "RightLeft":
+                if pos_1 == -1:
+                    self.position_1 = self.x_position
+                else:
+                    self.position_1 = pos_1
+                self.position_2 = (pos_2 * b_size) - b_size
+                self.direction = "r"
+            else:
+                if pos_1 == -1:
+                    self.position_1 = self.y_position
+                else:
+                    self.position_1 = pos_1
+                self.position_2 = 700 - ((pos_2 * b_size) - b_size)
+                self.direction = "d"
+
         else:
-            self.position_1 = self.y_position
-            self.position_2 = 700 - ((pos * b_size) - b_size)
-            self.direction = "d"
+            self.direction = dir
 
 
         self.default = fly_plat_default
@@ -1433,10 +1750,10 @@ class FlyPlat(Object):
 
 class JumpPad(Object):
 
-    def __init__(self, x_pos, y_pos):
+    def __init__(self, x_pos, y_pos, work = objects_on):
         super().__init__(x_pos, y_pos)
 
-        self.work = objects_on
+        self.work = work
 
         self.transparency = 125
 
@@ -1476,33 +1793,36 @@ class JumpPad(Object):
                 self.default = self.jump_pad_3
 
 class ExpandPlat(Object):
-    """
-    Class that represents ground and grass
-    """
 
-    def __init__(self, x_pos, y_pos, pos_2):
-        super().__init__(x_pos, y_pos)
-        self.position_2 = (pos_2 * b_size) - b_size
-        self.original_x = self.x_position
+    def __init__(self, x_pos, y_pos, expand, i = b_size, work = objects_on, m = False):
+        # super().__init__(x_pos, y_pos)
+        # self.position_2 = (pos_2 * b_size) - b_size
+        # self.original_x = self.x_position
 
-        self.y_position -= b_size - b_size / 5
+        if not m:
+            super().__init__(x_pos, y_pos)
+            self.y_position -= b_size - b_size / 5
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
 
-        self.work = objects_on
+        self.work = work
 
         self.transparency = 125
 
-        self.stop_i = expand_plat_i
-        self.i = expand_plat_i
+        self.stop_i = expand
+        self.i = i
 
         self.original = expand_plat_original
         self.default = expand_plat_default
         self.default_2 = expand_plat_default_2
 
-        while self.MakeSelfRect().right <= self.position_2 - move_scene_x:
-            self.x_position += 1
-        self.stop_i = self.x_position - self.original_x
+        # while self.MakeSelfRect().right <= self.position_2 - move_scene_x:
+        #     self.x_position += 1
+        # self.stop_i = self.x_position - self.original_x
 
-        self.x_position = self.original_x
+        # self.x_position = self.original_x
+        # self.i = 50
 
 
     def MakeSelfRect(self):
@@ -1517,7 +1837,6 @@ class ExpandPlat(Object):
             for i in range(5):
                 if self.i < self.stop_i:
                     self.i += 1
-
 
 
 class Spike(Object):
@@ -1569,20 +1888,26 @@ class Saw(Object):
     def MakeSelfRect(self):
         return self.MakeRect(self.default)
 
-class Siked_Ball(Object):
+class Spiked_Ball(Object):
     """
     Class that represents ground and grass
     """
 
-    def __init__(self, x_pos, y_pos):
-        super().__init__(x_pos, y_pos)
+    def __init__(self, x_pos, y_pos, gravity_pull = 0, fall = False, m = False):
+        # super().__init__(x_pos, y_pos)
 
-        self.fall = False
+        if not m:
+            super().__init__(x_pos, y_pos)
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
 
-        self.gravity_pull = 0
+        self.fall = fall
+
+        self.gravity_pull = gravity_pull
 
         self.default = saw_default
-        self.default = pygame.transform.scale(self.default, (b_size * 1.5, b_size * 1.5))
+        self.default = pygame.transform.scale(self.default, (b_size * 0.75, b_size * 0.75))
 
 
     def MakeSelfRect(self):
@@ -1590,7 +1915,7 @@ class Siked_Ball(Object):
 
     def CheckFall(self):
         if not self.fall:
-            if player_1.rect.right >= self.MakeSelfRect().left and not self.ObjectDown(self.MakeSelfRect()):
+            if player_1.MakeSelfRect().right >= self.MakeSelfRect().left and not self.ObjectDown(self.MakeSelfRect()):
                 self.fall = True
         if self.ObjectDown(self.MakeSelfRect()):
             self.fall = False
@@ -1658,17 +1983,21 @@ class Fire(Object):
             self.over = 0
 
 
-
 class Fruit(Object):
     """
     Class that represents ground and grass
     """
 
-    def __init__(self, x_pos, y_pos, nm):
-        super().__init__(x_pos, y_pos)
+    def __init__(self, x_pos, y_pos, nm, m = False):
+        # super().__init__(x_pos, y_pos)
 
-        self.x_position += b_size / 3
-        self.y_position -= b_size / 3
+        if not m:
+            super().__init__(x_pos, y_pos)
+            self.x_position += b_size / 3
+            self.y_position -= b_size / 3
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
 
         self.original_y = self.y_position
 
@@ -1694,11 +2023,16 @@ class Coin(Object):
     Class that represents ground and grass
     """
 
-    def __init__(self, x_pos, y_pos):
-        super().__init__(x_pos, y_pos)
+    def __init__(self, x_pos, y_pos, m = False):
+        # super().__init__(x_pos, y_pos)
 
-        self.x_position += b_size / 4
-        self.y_position -= b_size / 4
+        if not m:
+            super().__init__(x_pos, y_pos)
+            self.x_position += b_size / 4
+            self.y_position -= b_size / 4
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
 
         self.original_y = self.y_position
 
@@ -1711,16 +2045,21 @@ class Coin(Object):
         return self.MakeRect(self.default)
 
 
-
 class Box(Object):
     """
     Class that represents ground and grass
     """
 
-    def __init__(self, x_pos, y_pos):
-        super().__init__(x_pos, y_pos)
+    def __init__(self, x_pos, y_pos, gravity_pull = 0, m = False):
+        # super().__init__(x_pos, y_pos)
 
-        self.gravity_pull = 0
+        if not m:
+            super().__init__(x_pos, y_pos)
+        else:
+            self.x_position = x_pos
+            self.y_position = y_pos
+
+        self.gravity_pull = gravity_pull
 
         self.default = box_default
 
@@ -1729,9 +2068,8 @@ class Box(Object):
     def MakeSelfRect(self):
         return self.MakeRect(self.default)
 
-    def CheckFall(self):
-        self.MakeSides()
 
+    def CheckFall(self):
         if not self.ObjectDown(self.MakeSelfRect()):
             self.gravity_pull += 3
         else:
@@ -1740,24 +2078,46 @@ class Box(Object):
         for i in range(self.gravity_pull):
             if not self.ObjectDown(self.MakeSelfRect()):
                 self.y_position += 1
+                self.bottom += 1
+                self.top += 1
 
+
+class Timer:
+    def __init__(self, time = 0):
+        self.start_time = None
+        self.end_time = None
+        self.time = time
+        self.result = 0
+
+    def Start(self):
+        self.start_time = pygame.time.get_ticks()
+
+    def End(self):
+        self.end_time = pygame.time.get_ticks()
+
+    def Show(self):
+        self.result = self.end_time - self.start_time + self.time
+        return self.result
 
 
 # player_1 = Player(0, 0)
 # check_p_1 = Checkpoint(0, 0)
 
 
-def blit():
+def blit_level():
     """Blits all the objects"""
-    global player_1
+    global player_1, find_find_mode, player_pictures
 
     screen.blit(blue_sky, blue_sky_rect)
 
     for x in saws:
         if check_visible(x):
-            screen.blit(x.going[0], x.MakeSelfRect())
-            x.going.append(x.going[0])
-            x.going.pop(0)
+            if not game_paused:
+                screen.blit(x.going[0], x.MakeSelfRect())
+                x.going.append(x.going[0])
+                x.going.pop(0)
+            else:
+                screen.blit(x.going[0], x.MakeSelfRect())
 
     for i in range(len(list_grs)):
         if check_visible(list_grs[i]):
@@ -1766,7 +2126,11 @@ def blit():
             elif list_grounds_decide[i] == "ground":
                 screen.blit(list_grs[i].default, list_grs[i].MakeSelfRect())
 
-    for x in set(touch_objects) - set(list_grs) - set(fly_plats) - set(jump_pads) - set(expand_plats):
+    for x in set(touch_objects + boxes) - set(list_grs) - set(fly_plats) - set(jump_pads) - set(expand_plats):
+        if check_visible(x):
+            screen.blit(x.default, x.MakeSelfRect())
+
+    for x in bricks:
         if check_visible(x):
             screen.blit(x.default, x.MakeSelfRect())
 
@@ -1777,9 +2141,13 @@ def blit():
     for x in fires:
         if x.default == x.stage_on:
             if check_visible(x):
-               screen.blit(x.going[0], x.MakeSelfRect())
-               x.going.append(x.going[0])
-               x.going.pop(0)
+                if not game_paused:
+                    screen.blit(x.going[0], x.MakeSelfRectFire())
+                    x.going.append(x.going[0])
+                    x.going.pop(0)
+                else:
+                    screen.blit(x.going[0], x.MakeSelfRectFire())
+
 
 
     for x in start_games:
@@ -1789,21 +2157,30 @@ def blit():
 
     for x in check_ps:
         if x.checkpoint_TF:
-            screen.blit(x.checkpointing[0], x.MakeSelfRect())
-            x.checkpointing.append(x.checkpointing[0])
-            x.checkpointing.pop(0)
+            if not game_paused:
+                screen.blit(x.checkpointing[0], x.MakeSelfRect())
+                x.checkpointing.append(x.checkpointing[0])
+                x.checkpointing.pop(0)
+            else:
+                screen.blit(x.checkpointing[0], x.MakeSelfRect())
         else:
             screen.blit(x.no_checkpoint, x.MakeSelfRect())
 
 
     for x in snakes + mushrooms:
         if check_visible(x):
-            if x.side == "l":
-                screen.blit(x.going[0], x.MakeSelfRect())
-            if x.side == "r":
-                screen.blit(pygame.transform.flip(x.going[0], True, False), x.MakeSelfRect())
-            x.going.append(x.going[0])
-            x.going.pop(0)
+            if not game_paused:
+                if x.side == "l":
+                    screen.blit(x.going[0], x.MakeSelfRect())
+                if x.side == "r":
+                    screen.blit(pygame.transform.flip(x.going[0], True, False), x.MakeSelfRect())
+                x.going.append(x.going[0])
+                x.going.pop(0)
+            else:
+                if x.side == "l":
+                    screen.blit(x.going[0], x.MakeSelfRect())
+                if x.side == "r":
+                    screen.blit(pygame.transform.flip(x.going[0], True, False), x.MakeSelfRect())
 
     for x in horses + mummys:
         if check_visible(x):
@@ -1815,15 +2192,24 @@ def blit():
 
     for x in fly_plats:
         if check_visible(x):
-            if x.work:
-                x.going[0].set_alpha(255)
-                screen.blit(x.going[0], x.MakeSelfRect())
+            if not game_paused:
+                if x.work:
+                    x.going[0].set_alpha(255)
+                    screen.blit(x.going[0], x.MakeSelfRect())
+                else:
+                    x.going[0].set_alpha(x.transparency)
+                    screen.blit(x.going[0], x.MakeSelfRect())
+                    screen.blit(x.default_2, x.MakeSelfRectFruit())
+                x.going.append(x.going[0])
+                x.going.pop(0)
             else:
-                x.going[0].set_alpha(x.transparency)
-                screen.blit(x.going[0], x.MakeSelfRect())
-                screen.blit(x.default_2, x.MakeSelfRectFruit())
-            x.going.append(x.going[0])
-            x.going.pop(0)
+                if x.work:
+                    x.going[0].set_alpha(255)
+                    screen.blit(x.going[0], x.MakeSelfRect())
+                else:
+                    x.going[0].set_alpha(x.transparency)
+                    screen.blit(x.going[0], x.MakeSelfRect())
+                    screen.blit(x.default_2, x.MakeSelfRectFruit())
 
     for x in jump_pads:
         if check_visible(x):
@@ -1846,57 +2232,74 @@ def blit():
                 screen.blit(x.default_2, x.MakeSelfRectFruit())
 
 
-    find_find_mode = find_mode()
+    if not game_paused:
+        find_find_mode = find_mode()
+
 
     if find_find_mode == "stand":
-        player_1.standing[0].set_alpha(player_1.transparency)
-        if side == "r":
-            screen.blit(player_1.standing[0], player_1.MakeSelfRect())
+        if not game_paused:
+            player_pictures[1][0].set_alpha(player_1.transparency)
+            if side == "r":
+                screen.blit(player_pictures[1][0], player_1.MakeSelfRect())
+            else:
+                screen.blit(pygame.transform.flip(player_pictures[1][0], True, False), player_1.MakeSelfRect())
+            player_pictures[1].append(player_pictures[1][0])
+            player_pictures[1].pop(0)
         else:
-            screen.blit(pygame.transform.flip(player_1.standing[0], True, False), player_1.MakeSelfRect())
-        player_1.standing.append(player_1.standing[0])
-        player_1.standing.pop(0)
+            player_pictures[1][0].set_alpha(player_1.transparency)
+            if side == "r":
+                screen.blit(player_pictures[1][0], player_1.MakeSelfRect())
+            else:
+                screen.blit(pygame.transform.flip(player_pictures[1][0], True, False), player_1.MakeSelfRect())
 
     elif find_find_mode == "run":
-        player_1.running[0].set_alpha(player_1.transparency)
-        if side == "r":
-            screen.blit(player_1.running[0], player_1.MakeSelfRect())
+        if not game_paused:
+            player_pictures[0][0].set_alpha(player_1.transparency)
+            if side == "r":
+                screen.blit(player_pictures[0][0], player_1.MakeSelfRect())
+            else:
+                screen.blit(pygame.transform.flip(player_pictures[0][0], True, False), player_1.MakeSelfRect())
+            player_pictures[0].append(player_pictures[0][0])
+            player_pictures[0].pop(0)
         else:
-            screen.blit(pygame.transform.flip(player_1.running[0], True, False), player_1.MakeSelfRect())
-        player_1.running.append(player_1.running[0])
-        player_1.running.pop(0)
+            player_pictures[0][0].set_alpha(player_1.transparency)
+            if side == "r":
+                screen.blit(player_pictures[0][0], player_1.MakeSelfRect())
+            else:
+                screen.blit(pygame.transform.flip(player_pictures[0][0], True, False), player_1.MakeSelfRect())
 
     elif find_find_mode == "jump":
-        player_1.jump.set_alpha(player_1.transparency)
-        player_1.running = [player_1.run_1, player_1.run_2, player_1.run_3, player_1.run_4, player_1.run_5, player_1.run_6, player_1.run_7, player_1.run_8]
+        player_pictures[2].set_alpha(player_1.transparency)
         if side == "r":
-            screen.blit(player_1.jump, player_1.MakeSelfRect())
+            screen.blit(player_pictures[2], player_1.MakeSelfRect())
         else:
-            screen.blit(pygame.transform.flip(player_1.jump, True, False), player_1.MakeSelfRect())
+            screen.blit(pygame.transform.flip(player_pictures[2], True, False), player_1.MakeSelfRect())
 
     elif find_find_mode == "fall":
-        player_1.fall.set_alpha(player_1.transparency)
-        player_1.running = [player_1.run_1, player_1.run_2, player_1.run_3, player_1.run_4, player_1.run_5, player_1.run_6, player_1.run_7, player_1.run_8]
+        player_pictures[3].set_alpha(player_1.transparency)
         if side == "r":
-            screen.blit(player_1.fall, player_1.MakeSelfRect())
+            screen.blit(player_pictures[3], player_1.MakeSelfRect())
         else:
-            screen.blit(pygame.transform.flip(player_1.fall, True, False), player_1.MakeSelfRect())
+            screen.blit(pygame.transform.flip(player_pictures[3], True, False), player_1.MakeSelfRect())
 
     elif find_find_mode == "wall":
-        player_1.wall_jump.set_alpha(player_1.transparency)
-        player_1.running = [player_1.run_1, player_1.run_2, player_1.run_3, player_1.run_4, player_1.run_5, player_1.run_6, player_1.run_7, player_1.run_8]
+        player_pictures[4].set_alpha(player_1.transparency)
         if side == "r":
-            screen.blit(player_1.wall_jump, player_1.MakeSelfRect())
+            screen.blit(player_pictures[4], player_1.MakeSelfRect())
         else:
-            screen.blit(pygame.transform.flip(player_1.wall_jump, True, False), player_1.MakeSelfRect())
+            screen.blit(pygame.transform.flip(player_pictures[4], True, False), player_1.MakeSelfRect())
 
 
     for x in fruits + coins:
         if check_visible(x):
-            x.y_position = x.original_y + x.go[0]
-            screen.blit(x.default, x.MakeSelfRect())
-            x.go.append(x.go[0])
-            x.go.pop(0)
+            if not game_paused:
+                x.y_position = x.original_y + x.go[0]
+                screen.blit(x.default, x.MakeSelfRect())
+                x.go.append(x.go[0])
+                x.go.pop(0)
+            else:
+                x.y_position = x.original_y + x.go[0]
+                screen.blit(x.default, x.MakeSelfRect())
 
 
     screen.blit(apple, apple_rect)
@@ -1933,6 +2336,49 @@ def blit():
     screen.blit(go_back_button, go_back_button_rect)
     screen.blit(restart_button, restart_button_rect)
 
+    if game_paused:
+        screen.blit(not_pause_button, not_pause_button_rect)
+    else:
+        screen.blit(pause_button, pause_button_rect)
+
+def blit_menu():
+    screen.blit(orange_bck, orange_bck_rect)
+    screen.blit(play_button, play_button_rect)
+
+    text = pygame.font.Font(None, 75)
+
+    best_score_text = text.render(f"Best Score:", True, 'Black')
+    best_score_text_rect = best_score_text.get_rect(center=(650, 450))
+
+    screen.blit(best_score_text, best_score_text_rect)
+
+    best_score_num_text = text.render(f"{"0" if best_score == 0 else best_score / 1000} s", True, 'Black')
+    best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 530))
+    screen.blit(best_score_num_text, best_score_num_text_rect)
+
+    screen.blit(coin_menu, coin_menu_rect)
+
+    text = pygame.font.Font(None, 50)
+
+    best_score_num_text = text.render(f"{coins_total_menu}", True, 'Black')
+    best_score_num_text_rect = best_score_num_text.get_rect(topleft=(70, 5))
+    screen.blit(best_score_num_text, best_score_num_text_rect)
+
+    # if best_score == 0:
+    #     best_score_num_text = text.render("0s", True, 'Black')
+    #     best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 525))
+    #     screen.blit(best_score_num_text, best_score_num_text_rect)
+    # else:
+    #     best_score_num_text = text.render(f"{best_score[0] / 1000}s -     {best_score[1]}", True, 'Black')
+    #     best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 530))
+    #     screen.blit(best_score_num_text, best_score_num_text_rect)
+    #
+    #     best_score_num_text = text.render(f"{best_score[2] / 1000}s", True, 'Black')
+    #     best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 590))
+    #     screen.blit(best_score_num_text, best_score_num_text_rect)
+    #
+    #     screen.blit(coin_2, coin_2_rect)
+
 def keys_pressed():
     """What happens when keys are pressed"""
     global fall_jump, move_scene_y
@@ -1967,14 +2413,26 @@ def keys_pressed():
         else:
             player_1.MoveLeft()
 
-    if keys[pygame.K_UP] and object_down:
-        fall_jump = 28
+    if keys[pygame.K_UP]:
+        if object_down:
+            fall_jump = 28
+        else:
+            if not object_down:
+                TF = True
+                for i in bricks:
+                    if check_visible(i):
+                        if player_1.MakeSelfRect().bottom == i.MakeRect2(
+                                "t") and player_1.MakeSelfRect().left < i.MakeRect2(
+                            "r") and player_1.MakeSelfRect().right > i.MakeRect2("l"):
+                            TF = False
+                if not TF:
+                    fall_jump = 28
 
-    elif keys[pygame.K_UP] and not object_down and fall_jump == 0 and find_find_mode == "wall":
+    if keys[pygame.K_UP] and not object_down and fall_jump == 0 and find_find_mode == "wall":
         fall_jump = 17
 
 def find_mode():
-    global mode
+    global mode, fall_jump
     global side
     keys = pygame.key.get_pressed()
     object_right = player_1.ObjectRight(player_1.MakeSelfRect())
@@ -2030,6 +2488,21 @@ def find_mode():
     elif fall_jump < 0 and not object_left and not object_right:
         mode = "fall"
 
+    TF = True
+    if not object_down:
+        for i in bricks:
+            if check_visible(i):
+                if player_1.MakeSelfRect().bottom == i.MakeRect2("t") and player_1.MakeSelfRect().left < i.MakeRect2("r") and player_1.MakeSelfRect().right > i.MakeRect2("l"):
+                    TF = False
+        if not TF:
+            fall_jump = 28
+    if not TF:
+        fall_jump = 0
+        if keys[pygame.K_RIGHT] or keys[pygame.K_LEFT]:
+            mode = "run"
+        else:
+            mode = "stand"
+
     return mode
 
 def start_play():
@@ -2059,13 +2532,13 @@ def start_play():
     global coins
     global list_grs
     global boxes
-    global touch_objects
-    global start_game_time
+    global touch_objects, bricks
     global apples, bananas, cherries, coins_not_list
+    global timer
+    global find_find_mode
 
     # variables
     # -------------------------
-    start_game_time = pygame.time.get_ticks()
     fall_jump = 0
     move_scene_x = 0
     move_scene_y = 0
@@ -2076,7 +2549,11 @@ def start_play():
     bananas = -1
     cherries = -1
     coins_not_list = -1
+    timer = Timer()
+    find_find_mode = None
     # -------------------------
+
+    timer.Start()
 
     list_grs = [
         Ground(1, 2),
@@ -2089,14 +2566,14 @@ def start_play():
         Ground(8, 1),
         Ground(9, 1),
         Ground(10, 1),
-        Ground(11, 1),
+        # Ground(11, 1),
         Ground(9, 2),
         Ground(10, 3),
-        Ground(11, 4),
+        # Ground(11, 4),
         Ground(17, 2),
         Ground(16, 3),
-        Ground(15, 4),
-        Ground(15, 1),
+        # Ground(15, 4),
+        # Ground(15, 1),
         Ground(16, 1),
         Ground(17, 1),
         Ground(18, 1),
@@ -2143,7 +2620,7 @@ def start_play():
         Ground(58, 1),
         Ground(59, 2),
         Ground(60, 2),
-        Ground(61, 7),
+        # Ground(61, 7),
         Ground(62, 7),
         Ground(63, 7),
         Ground(64, 7),
@@ -2195,7 +2672,37 @@ def start_play():
         Ground(141, 1),
         Ground(142, 1),
         Ground(143, 1),
-                ]
+        Ground(144, 9),
+        Ground(145, 8),
+        Ground(146, 6),
+        Ground(147, 5),
+        Ground(148, 1),
+        Ground(149, 1),
+        Ground(150, 1),
+        Ground(151, 1),
+        Ground(152, 1),
+        Ground(153, 1),
+        Ground(154, 1),
+        Ground(155, 1),
+        Ground(156, 1),
+        Ground(157, 1),
+        Ground(158, 1),
+        Ground(159, 1),
+        Ground(160, 1),
+        Ground(161, 1),
+        Ground(162, 1),
+        Ground(163, 1),
+        Ground(177, 1),
+        Ground(178, 1),
+        Ground(179, 1),
+        Ground(180, 1),
+        Ground(181, 1),
+        Ground(182, 1),
+        Ground(183, 1),
+        Ground(184, 1),
+        Ground(185, 1),
+        Ground(186, 1),
+    ]
 
     plats = [
         SilverThickPlat(7, 8),
@@ -2249,6 +2756,37 @@ def start_play():
 
         OrangeThickPlat(134, 5),
         OrangeThickPlat(133, 4),
+
+        GoldThickPlat(143, 4),
+        GoldThickPlat(143, 8),
+        GoldThickPlat(140, 8),
+
+        OrangeThickPlat(151, 4),
+        OrangeThickPlat(152, 4),
+
+        OrangeThickPlat(157, 7),
+        OrangeThickPlat(148, 7),
+        OrangeThickPlat(149, 7),
+        OrangeThickPlat(150, 7),
+
+        OrangeThickPlat(154, 7),
+        OrangeThickPlat(155, 7),
+        OrangeThickPlat(156, 7),
+        OrangeThickPlat(157, 7),
+        OrangeThickPlat(158, 7),
+
+        # OrangeThickPlat(159, 8),
+        # OrangeThickPlat(160, 8),
+        # OrangeThickPlat(161, 8),
+
+        GoldThickPlat(164, 4),
+        GoldThickPlat(165, 4),
+
+        GoldThickPlat(167, 6),
+        GoldThickPlat(168, 6),
+
+        GoldThickPlat(163, 8),
+        GoldThickPlat(164, 8),
             ]
 
     list_blocks = [
@@ -2261,54 +2799,124 @@ def start_play():
         SmallSilverBlock(39.5, 5.5),
         SmallSilverBlock(44, 5.5),
 
-        BrickBlock(49, 6),
-        BrickBlock(50, 6),
-        BrickBlock(51, 6),
-        BrickBlock(52, 6),
-        BrickBlock(53, 6),
+        # SmallSilverBlock(60.5, 7.5),
 
-        SmallSilverBlock(60.5, 7.5),
-
-        BrownBlock(62, 1),
-        BrownBlock(62, 2),
-        BrownBlock(62, 3),
-        BrownBlock(62, 4),
-        BrownBlock(62, 5),
-        BrownBlock(62, 6),
-        BrownBlock(63, 1),
-        BrownBlock(63, 2),
-        BrownBlock(63, 3),
-        BrownBlock(63, 4),
-        BrownBlock(63, 5),
-        BrownBlock(63, 6),
-
-        # SmallOrangeBlock(74, 8.5),
-        # SmallOrangeBlock(73, 7.5),
-        # SmallOrangeBlock(72, 6.5),
-        # SmallOrangeBlock(72, 4),
-        # SmallOrangeBlock(73, 3),
-        # SmallOrangeBlock(74, 2),
+        # BrownBlock(62, 1),
+        # BrownBlock(62, 2),
+        # BrownBlock(62, 3),
+        # BrownBlock(62, 4),
+        # BrownBlock(62, 5),
+        # BrownBlock(62, 6),
+        # BrownBlock(63, 1),
+        # BrownBlock(63, 2),
+        # BrownBlock(63, 3),
+        # BrownBlock(63, 4),
+        # BrownBlock(63, 5),
+        # BrownBlock(63, 6),
 
         SilverBlock(98, 18),
         SilverBlock(107, 18),
 
-        BrickBlock(138, 5),
-        BrickBlock(138, 6),
-        BrickBlock(138, 7),
-        BrickBlock(138, 8),
-        BrickBlock(138, 9),
-        BrickBlock(138, 9),
+        SmallBrownBlock(138.5, 4.5),
 
-        BrickBlock(139, 4),
-        BrickBlock(139, 5),
-        BrickBlock(139, 6),
-        BrickBlock(139, 7),
-        BrickBlock(139, 8),
-        BrickBlock(139, 9),
-        BrickBlock(139, 10),
+        SilverBlock(49, 6),
+        SilverBlock(50, 6),
+        SilverBlock(51, 6),
+        SilverBlock(52, 6),
+        SilverBlock(53, 6),
 
-        SmallBrownBlock(138.5, 4.5)
-                   ]
+        BrownBlock(138, 5),
+        BrownBlock(138, 6),
+        BrownBlock(138, 7),
+        BrownBlock(138, 8),
+        BrownBlock(138, 9),
+        BrownBlock(138, 10),
+        BrownBlock(138, 11),
+        BrownBlock(138, 12),
+        BrownBlock(138, 13),
+        BrownBlock(138, 14),
+        BrownBlock(138, 15),
+        BrownBlock(138, 16),
+        BrownBlock(138, 17),
+        BrownBlock(138, 18),
+        BrownBlock(138, 19),
+        BrownBlock(138, 20),
+        BrownBlock(138, 21),
+        BrownBlock(138, 22),
+        BrownBlock(138, 23),
+        BrownBlock(138, 24),
+        BrownBlock(138, 25),
+        BrownBlock(138, 26),
+        BrownBlock(138, 27),
+        BrownBlock(138, 28),
+        BrownBlock(138, 29),
+        BrownBlock(138, 30),
+
+        BrownBlock(139, 4),
+        BrownBlock(139, 5),
+        BrownBlock(139, 6),
+        BrownBlock(139, 7),
+        BrownBlock(139, 8),
+        BrownBlock(139, 9),
+        BrownBlock(139, 10),
+        BrownBlock(139, 11,),
+        BrownBlock(139, 12),
+        BrownBlock(139, 13),
+        BrownBlock(139, 14),
+        BrownBlock(139, 15),
+        BrownBlock(139, 16),
+        BrownBlock(139, 17),
+        BrownBlock(139, 18),
+        BrownBlock(139, 19),
+
+        SmallSilverBlock(166.5, 2),
+        SmallSilverBlock(166, 2),
+
+        SmallSilverBlock(169.5, 2),
+        SmallSilverBlock(169, 2),
+
+        SmallSilverBlock(172.5, 2),
+        SmallSilverBlock(172, 2),
+    ]
+
+    bricks = [
+        BrickBlock(161, 2),
+        BrickBlock(161, 3),
+        BrickBlock(161, 4),
+        BrickBlock(161, 5),
+        BrickBlock(161, 6),
+
+        BrickBlock(159, 8),
+        BrickBlock(159, 9),
+
+        BrickBlock(11, 1),
+        BrickBlock(11, 2),
+        BrickBlock(11, 3),
+        BrickBlock(11, 4),
+
+        BrickBlock(15, 1),
+        BrickBlock(15, 2),
+        BrickBlock(15, 3),
+        BrickBlock(15, 4),
+
+        BrickBlock(61, 1),
+        BrickBlock(61, 2),
+        BrickBlock(61, 3),
+        BrickBlock(61, 4),
+        BrickBlock(61, 5),
+        BrickBlock(61, 6),
+        BrickBlock(61, 7),
+
+        BrownBlock(139, 20),
+        BrownBlock(139, 21),
+        BrownBlock(139, 22),
+        BrownBlock(139, 23),
+        BrownBlock(139, 24),
+        BrownBlock(139, 25),
+        BrownBlock(139, 26),
+        BrownBlock(139, 27),
+        BrownBlock(139, 28),
+    ]
 
     list_grs_copy = []
 
@@ -2349,26 +2957,8 @@ def start_play():
     ]
 
     end_games = [
-        # EndGame(1, 3)
+        EndGame(185, 2)
     ]
-
-    snakes = [
-        Snake(22, 4, 26),
-        Snake(36, 2, 39),
-        Snake(49, 7, 52),
-        Snake(127, 3, 129),
-              ]
-
-    mushrooms = [
-        Mushroom(4, 2, 8),
-        Mushroom(18, 2, 20),
-        Mushroom(22, 4, 26),
-        Mushroom(61, 8, 64),
-        Mushroom(71, 9, 73),
-        Mushroom(118, 3, 120),
-        Mushroom(133, 2, 135),
-        Mushroom(137, 2, 143),
-                 ]
 
 
 
@@ -2378,6 +2968,7 @@ def start_play():
         FlyPlat(78, 7, 2,"UpDown"),
         FlyPlat(80, 8, 84,"RightLeft"),
         FlyPlat(86, 11, 4, "UpDown"),
+        FlyPlat(164, 1, 174, "RightLeft"),
                  ]
 
     jump_pads = [
@@ -2387,8 +2978,8 @@ def start_play():
     ]
 
     expand_plats = [
-        ExpandPlat(65, 3, 68),
-        ExpandPlat(121, 2, 127)
+        ExpandPlat(65, 3, b_size * 3),
+        ExpandPlat(121, 2, b_size * 6)
     ]
 
 
@@ -2416,12 +3007,35 @@ def start_play():
 
         Spike(136, 2),
         Spike(136.5, 2),
+
+        Spike(149, 8),
+        Spike(149.6, 8),
+        Spike(148, 8, 1),
+
+        # Spike(159, 9),
+        # Spike(159.5, 9),
+        # Spike(160, 9),
+        # Spike(160.5, 9),
+        # Spike(161, 9),
+        # Spike(161.5, 9),
+
+        Spike(162, 2, 1),
+
+        Spike(166, 2.5),
+        Spike(169, 2.5),
+        Spike(172, 2.5),
+        Spike(166.5, 2.5),
+        Spike(169.5, 2.5),
+        Spike(172.5, 2.5),
+
+        Spike(159, 10, 1),
               ]
 
     saws = [
         Saw(29.5, 1.5, 3),
         Saw(52.5, 0.5, 3),
         Saw(137, 6, 3),
+        Saw(147, 2, 2),
             ]
 
     spiked_balls = []#Siked_Ball(36, 7)]
@@ -2431,6 +3045,8 @@ def start_play():
         Fire(41, 2),
         Fire(42, 2),
         Fire(43, 2),
+
+        Fire(161, 7),
              ]
 
 
@@ -2443,9 +3059,11 @@ def start_play():
         Fruit(33, 4, "a"),
         Fruit(40, 6, "a"),
         Fruit(52, 7, "b"),
-        Fruit(65, 4, "b"),
+        Fruit(63, 8, "b"),
+        Fruit(65, 6, "b"),
         Fruit(72, 9, "b"),
         Fruit(94, 19, "c"),
+        Fruit(149, 10, "b"),
               ]
 
     coins = [
@@ -2496,20 +3114,906 @@ def start_play():
 
         Coin(93, 15),
         Coin(94, 15),
+
+        Coin(150, 8),
+        Coin(151, 8),
+
+        Coin(151, 5),
+        Coin(152, 5),
+
+        Coin(158, 2),
+        Coin(159, 2),
+        Coin(160, 2),
+        Coin(159, 3),
+        Coin(160, 3),
+        Coin(160, 4),
+
+        Coin(164, 5),
+        Coin(165, 5),
+
+        Coin(167, 7),
+        Coin(168, 7),
+
+        Coin(163, 9),
+        Coin(164, 9),
+
+        Coin(140, 9),
+        Coin(141, 9),
+        Coin(140, 10),
+        Coin(141, 10),
+        Coin(140, 11),
+        Coin(141, 11),
+        Coin(140, 12),
+        Coin(141, 12),
+        Coin(140, 13),
+        Coin(141, 13),
+        Coin(140, 14),
+        Coin(141, 14),
+        Coin(140, 15),
+        Coin(141, 15),
+        Coin(140, 16),
+        Coin(141, 16),
+        Coin(140, 17),
+        Coin(141, 17),
+        Coin(140, 18),
+        Coin(141, 18),
+        Coin(140, 19),
+        Coin(141, 19),
              ]
 
-    horse_1 = Horse(7, 2)
-    horse_2 = Horse(15, 3)
-    horses = []
 
-    mummy_1 = Mummy(7, 2, 5, 8)
-    mummys = []
+    snakes = [
+        Snake(22, 4, 26),
+        Snake(36, 2, 39),
+        Snake(49, 7, 53),
+        Snake(127, 3, 129),
+        Snake(137, 2, 143),
+              ]
 
-    box_1 = Box(5, 4)
-    boxes = []
+    mushrooms = [
+        # Mushroom(4, 2, 8),
+        Mushroom(18, 2, 20),
+        Mushroom(22, 4, 26),
+        Mushroom(61, 8, 64),
+        Mushroom(71, 9, 73),
+        Mushroom(118, 3, 120),
+        Mushroom(133, 2, 135),
+        Mushroom(40, 6, 43),
+                 ]
 
-    touch_objects = list_grs + plats + fires + list_blocks + boxes
+    horses = [
+        Horse(4, 2, 8),
+        # Horse(155, 2),
+    ]
+
+    mummys = [
+        # Mummy(155, 2, 5, 8)
+    ]
+
+
+    boxes = [
+        Box(155, 8),
+        Box(157, 10)
+    ]
+
+    touch_objects = list_grs + plats + fires + list_blocks + boxes + end_games
     touch_objects.append(start_game_stage)
+
+def start_play_not_changeable():
+    global list_grounds_decide
+    global start_games
+    global end_games
+    global spikes
+    global saws
+    global fires
+    global list_grs
+    global touch_objects
+    global bricks, player_1
+    global mushrooms, snakes, horses, mummys, fruits, coins, fly_plats, expand_plats, jump_pads, check_ps, spiked_balls, boxes,\
+        original_snakes, original_mushrooms, original_horses, original_mummys, original_fruits, original_coins, \
+        original_fly_plats, original_expand_plats, original_jump_pads, original_check_ps, original_spiked_balls, original_boxes
+    # global apples, bananas, cherries, coins_not_list
+    # global find_find_mode
+
+    # variables
+    # -------------------------
+    # fall_jump = 0
+    # move_scene_x = 0
+    # move_scene_y = 0
+    # mode = "fall"
+    # side = "r"
+    # checkpoints = 0
+    # apples = -1
+    # bananas = -1
+    # cherries = -1
+    # coins_not_list = -1
+    # timer = Timer()
+    # find_find_mode = None
+    # -------------------------
+
+
+    mushrooms = [
+        Mushroom(4, 2, 8),
+        Mushroom(18, 2, 20),
+        Mushroom(22, 4, 26),
+        Mushroom(61, 8, 64),
+        Mushroom(71, 9, 73),
+        Mushroom(118, 3, 120),
+        Mushroom(133, 2, 135),
+        Mushroom(40, 6, 43),
+    ]
+
+    snakes = [
+        Snake(22, 4, 26),
+        Snake(36, 2, 39),
+        Snake(49, 7, 53),
+        Snake(127, 3, 129),
+        Snake(137, 2, 143),
+    ]
+
+    horses = [
+        # Horse(4, 2, 8),
+        Horse(155, 2, 157),
+    ]
+
+    mummys = [
+        # Mummy(4, 2, 10)
+    ]
+
+
+
+    fruits = [
+        Fruit(6, 9, "b"),
+        Fruit(27, 3, "a"),
+        Fruit(29, 14, "c"),
+        Fruit(33, 4, "a"),
+        Fruit(40, 6, "a"),
+        Fruit(52, 7, "b"),
+        Fruit(63, 8, "b"),
+        Fruit(65, 6, "b"),
+        Fruit(72, 9, "b"),
+        Fruit(94, 19, "c"),
+        Fruit(149, 10, "b"),
+    ]
+
+    coins = [
+        Coin(1, 5),
+        Coin(2, 5),
+        Coin(3, 5),
+        Coin(1, 6),
+        Coin(2, 6),
+        Coin(3, 6),
+
+        Coin(13, 11),
+        Coin(14, 11),
+
+        Coin(15, 14),
+        Coin(16, 14),
+
+        Coin(23, 7),
+        Coin(24, 7),
+        Coin(25, 7),
+
+        Coin(36, 2),
+        Coin(37, 2),
+        Coin(38, 2),
+        Coin(39, 2),
+
+        Coin(42, 6),
+        Coin(43, 6),
+
+        Coin(49, 2),
+        Coin(51, 3),
+
+        Coin(49, 7),
+        Coin(50, 7),
+
+        Coin(56, 2),
+        Coin(57, 2),
+
+        Coin(72, 5),
+        Coin(73, 4),
+        Coin(73, 5),
+        Coin(73, 6),
+
+        Coin(89, 13),
+        Coin(90, 13),
+
+        Coin(89, 17),
+        Coin(90, 17),
+
+        Coin(93, 15),
+        Coin(94, 15),
+
+        Coin(150, 8),
+        Coin(151, 8),
+
+        Coin(151, 5),
+        Coin(152, 5),
+
+        Coin(158, 2),
+        Coin(159, 2),
+        Coin(160, 2),
+        Coin(159, 3),
+        Coin(160, 3),
+        Coin(160, 4),
+
+        Coin(164, 5),
+        Coin(165, 5),
+
+        Coin(167, 7),
+        Coin(168, 7),
+
+        Coin(163, 9),
+        Coin(164, 9),
+
+        Coin(140, 9),
+        Coin(141, 9),
+        Coin(140, 10),
+        Coin(141, 10),
+        Coin(140, 11),
+        Coin(141, 11),
+        Coin(140, 12),
+        Coin(141, 12),
+        Coin(140, 13),
+        Coin(141, 13),
+        Coin(140, 14),
+        Coin(141, 14),
+        Coin(140, 15),
+        Coin(141, 15),
+        Coin(140, 16),
+        Coin(141, 16),
+        Coin(140, 17),
+        Coin(141, 17),
+        Coin(140, 18),
+        Coin(141, 18),
+        Coin(140, 19),
+        Coin(141, 19),
+    ]
+
+
+    # jump_pad = apple, fly_plat = banana, expand_plat = cherry
+
+    fly_plats = [
+        FlyPlat(17, 16, 25, "RightLeft"),
+        FlyPlat(44, 8, 54, "RightLeft"),
+        FlyPlat(78, 7, 2, "UpDown"),
+        FlyPlat(80, 8, 84, "RightLeft"),
+        FlyPlat(86, 11, 4, "UpDown"),
+        FlyPlat(164, 1, 174, "RightLeft"),
+    ]
+
+    jump_pads = [
+        JumpPad(11, 5),
+        JumpPad(47, 2),
+        JumpPad(59, 3),
+    ]
+
+    expand_plats = [
+        # ExpandPlat(1, 4, b_size * 4),
+        ExpandPlat(65, 3, b_size * 3),
+        ExpandPlat(121, 2, b_size * 6)
+    ]
+
+
+
+    check_ps = [
+        Checkpoint(73, 9)
+    ]
+
+
+    spiked_balls = [
+        # Spiked_Ball(7, 7),
+        Spiked_Ball(36, 7)
+    ]
+
+    boxes = [
+        # Box(1, 8),
+        Box(155, 8),
+        Box(157, 10)
+    ]
+
+
+    original_snakes = snakes
+    original_mushrooms = mushrooms
+    original_horses = horses
+    original_mummys = mummys
+
+    original_fruits = fruits
+    original_coins = coins
+
+    original_fly_plats = fly_plats
+    original_expand_plats = expand_plats
+    original_jump_pads = jump_pads
+
+    original_check_ps = check_ps
+    original_spiked_balls = spiked_balls
+    original_boxes = boxes
+
+
+    list_grs = [
+        Ground(1, 2),
+        Ground(2, 2),
+        Ground(3, 2),
+        Ground(4, 1),
+        Ground(5, 1),
+        Ground(6, 1),
+        Ground(7, 1),
+        Ground(8, 1),
+        Ground(9, 1),
+        Ground(10, 1),
+        # Ground(11, 1),
+        Ground(9, 2),
+        Ground(10, 3),
+        # Ground(11, 4),
+        Ground(17, 2),
+        Ground(16, 3),
+        # Ground(15, 4),
+        # Ground(15, 1),
+        Ground(16, 1),
+        Ground(17, 1),
+        Ground(18, 1),
+        Ground(19, 1),
+        Ground(20, 1),
+        Ground(21, 2),
+        Ground(22, 3),
+        Ground(23, 3),
+        Ground(24, 3),
+        Ground(25, 3),
+        Ground(26, 3),
+        Ground(26, 2),
+        Ground(27, 2),
+        Ground(28, 2),
+        Ground(29, 2),
+        Ground(30, 2),
+        Ground(31, 4),
+        Ground(32, 4),
+        Ground(33, 3),
+        Ground(34, 2),
+        Ground(35, 2),
+        Ground(36, 1),
+        Ground(37, 1),
+        Ground(38, 1),
+        Ground(39, 1),
+        Ground(40, 1),
+        Ground(41, 1),
+        Ground(42, 1),
+        Ground(43, 1),
+        Ground(44, 1),
+        Ground(45, 1),
+        Ground(46, 1),
+        Ground(47, 1),
+        Ground(48, 1),
+        Ground(49, 1),
+        Ground(50, 2),
+        Ground(51, 2),
+        Ground(52, 3),
+        Ground(53, 1),
+        Ground(54, 1),
+        Ground(55, 1),
+        Ground(56, 1),
+        Ground(57, 1),
+        Ground(58, 1),
+        Ground(59, 2),
+        Ground(60, 2),
+        # Ground(61, 7),
+        Ground(62, 7),
+        Ground(63, 7),
+        Ground(64, 7),
+        Ground(65, 1),
+        Ground(66, 1),
+        Ground(67, 1),
+        Ground(68, 1),
+        Ground(69, 1),
+        Ground(70, 1),
+        Ground(71, 8),
+        Ground(72, 7),
+        Ground(72, 8),
+        Ground(73, 8),
+        Ground(72, 3),
+        Ground(73, 2),
+        Ground(74, 1),
+        Ground(75, 1),
+        Ground(110, 1),
+        Ground(111, 3),
+        Ground(112, 4),
+        Ground(113, 5),
+        Ground(114, 6),
+        Ground(115, 6),
+        Ground(116, 5),
+        Ground(117, 3),
+        Ground(118, 2),
+        Ground(119, 2),
+        Ground(120, 2),
+        Ground(127, 2),
+        Ground(128, 2),
+        Ground(129, 2),
+        Ground(130, 3),
+        Ground(131, 4),
+        Ground(132, 6),
+        Ground(133, 5),
+        Ground(133, 6),
+        Ground(133, 7),
+        Ground(134, 6),
+        Ground(134, 7),
+        Ground(134, 8),
+        Ground(133, 1),
+        Ground(134, 1),
+        Ground(135, 1),
+        Ground(136, 1),
+        Ground(137, 1),
+        Ground(138, 1),
+        Ground(139, 1),
+        Ground(140, 1),
+        Ground(141, 1),
+        Ground(142, 1),
+        Ground(143, 1),
+        Ground(144, 9),
+        Ground(145, 8),
+        Ground(146, 6),
+        Ground(147, 5),
+        Ground(148, 1),
+        Ground(149, 1),
+        Ground(150, 1),
+        Ground(151, 1),
+        Ground(152, 1),
+        Ground(153, 1),
+        Ground(154, 1),
+        Ground(155, 1),
+        Ground(156, 1),
+        Ground(157, 1),
+        Ground(158, 1),
+        Ground(159, 1),
+        Ground(160, 1),
+        Ground(161, 1),
+        Ground(162, 1),
+        Ground(163, 1),
+        Ground(177, 1),
+        Ground(178, 1),
+        Ground(179, 1),
+        Ground(180, 1),
+        Ground(181, 1),
+        Ground(182, 1),
+        Ground(183, 1),
+        Ground(184, 1),
+        Ground(185, 1),
+        Ground(186, 1),
+    ]
+
+    plats = [
+        SilverThickPlat(7, 8),
+        SilverThickPlat(6, 8),
+
+        SilverThickPlat(13, 10),
+        SilverThickPlat(14, 10),
+
+        SilverThickPlat(15, 13),
+        SilverThickPlat(16, 13),
+
+        SilverThickPlat(27, 13),
+        SilverThickPlat(28, 13),
+        SilverThickPlat(29, 13),
+
+        SilverThickPlat(23, 6),
+        SilverThickPlat(24, 6),
+        SilverThickPlat(25, 6),
+
+        OrangeThickPlat(89, 12),
+        OrangeThickPlat(90, 12),
+        OrangeThickPlat(89, 16),
+        OrangeThickPlat(90, 16),
+
+        OrangeThickPlat(93, 14),
+        OrangeThickPlat(94, 14),
+        OrangeThickPlat(93, 18),
+        OrangeThickPlat(94, 18),
+
+        SilverThinPlat(98, 18),
+        SilverThinPlat(99, 18),
+        SilverThinPlat(100, 18),
+        SilverThinPlat(101, 18),
+        SilverThinPlat(102, 18),
+        SilverThinPlat(103, 18),
+        SilverThinPlat(104, 18),
+        SilverThinPlat(105, 18),
+        SilverThinPlat(106, 18),
+
+        BrownThickPlat(108, 15),
+        BrownThickPlat(109, 15),
+
+        BrownThickPlat(110, 12),
+        BrownThickPlat(111, 12),
+
+        BrownThickPlat(112, 9),
+        BrownThickPlat(113, 9),
+
+        OrangeThickPlat(73, 7),
+        OrangeThickPlat(72, 6),
+
+        OrangeThickPlat(134, 5),
+        OrangeThickPlat(133, 4),
+
+        GoldThickPlat(143, 4),
+        GoldThickPlat(143, 8),
+        GoldThickPlat(140, 8),
+
+        OrangeThickPlat(151, 4),
+        OrangeThickPlat(152, 4),
+
+        OrangeThickPlat(157, 7),
+        OrangeThickPlat(148, 7),
+        OrangeThickPlat(149, 7),
+        OrangeThickPlat(150, 7),
+
+        OrangeThickPlat(154, 7),
+        OrangeThickPlat(155, 7),
+        OrangeThickPlat(156, 7),
+        OrangeThickPlat(157, 7),
+        OrangeThickPlat(158, 7),
+
+        # OrangeThickPlat(159, 8),
+        # OrangeThickPlat(160, 8),
+        # OrangeThickPlat(161, 8),
+
+        GoldThickPlat(164, 4),
+        GoldThickPlat(165, 4),
+
+        GoldThickPlat(167, 6),
+        GoldThickPlat(168, 6),
+
+        GoldThickPlat(163, 8),
+        GoldThickPlat(164, 8),
+    ]
+
+    list_blocks = [
+        GoldBlock(40, 5),
+        GoldBlock(41, 5),
+        GoldBlock(42, 5),
+        GoldBlock(43, 5),
+        GoldBlock(39, 6),
+        GoldBlock(44, 6),
+        SmallSilverBlock(39.5, 5.5),
+        SmallSilverBlock(44, 5.5),
+
+        # SmallSilverBlock(60.5, 7.5),
+
+        # BrownBlock(62, 1),
+        # BrownBlock(62, 2),
+        # BrownBlock(62, 3),
+        # BrownBlock(62, 4),
+        # BrownBlock(62, 5),
+        # BrownBlock(62, 6),
+        # BrownBlock(63, 1),
+        # BrownBlock(63, 2),
+        # BrownBlock(63, 3),
+        # BrownBlock(63, 4),
+        # BrownBlock(63, 5),
+        # BrownBlock(63, 6),
+
+        SilverBlock(98, 18),
+        SilverBlock(107, 18),
+
+        SmallBrownBlock(138.5, 4.5),
+
+        SilverBlock(49, 6),
+        SilverBlock(50, 6),
+        SilverBlock(51, 6),
+        SilverBlock(52, 6),
+        SilverBlock(53, 6),
+
+        BrownBlock(138, 5),
+        BrownBlock(138, 6),
+        BrownBlock(138, 7),
+        BrownBlock(138, 8),
+        BrownBlock(138, 9),
+        BrownBlock(138, 10),
+        BrownBlock(138, 11),
+        BrownBlock(138, 12),
+        BrownBlock(138, 13),
+        BrownBlock(138, 14),
+        BrownBlock(138, 15),
+        BrownBlock(138, 16),
+        BrownBlock(138, 17),
+        BrownBlock(138, 18),
+        BrownBlock(138, 19),
+        BrownBlock(138, 20),
+        BrownBlock(138, 21),
+        BrownBlock(138, 22),
+        BrownBlock(138, 23),
+        BrownBlock(138, 24),
+        BrownBlock(138, 25),
+        BrownBlock(138, 26),
+        BrownBlock(138, 27),
+        BrownBlock(138, 28),
+        BrownBlock(138, 29),
+        BrownBlock(138, 30),
+
+        BrownBlock(139, 4),
+        BrownBlock(139, 5),
+        BrownBlock(139, 6),
+        BrownBlock(139, 7),
+        BrownBlock(139, 8),
+        BrownBlock(139, 9),
+        BrownBlock(139, 10),
+        BrownBlock(139, 11, ),
+        BrownBlock(139, 12),
+        BrownBlock(139, 13),
+        BrownBlock(139, 14),
+        BrownBlock(139, 15),
+        BrownBlock(139, 16),
+        BrownBlock(139, 17),
+        BrownBlock(139, 18),
+        BrownBlock(139, 19),
+
+        SmallSilverBlock(166.5, 2),
+        SmallSilverBlock(166, 2),
+
+        SmallSilverBlock(169.5, 2),
+        SmallSilverBlock(169, 2),
+
+        SmallSilverBlock(172.5, 2),
+        SmallSilverBlock(172, 2),
+    ]
+
+    bricks = [
+        BrickBlock(161, 2),
+        BrickBlock(161, 3),
+        BrickBlock(161, 4),
+        BrickBlock(161, 5),
+        BrickBlock(161, 6),
+
+        BrickBlock(159, 8),
+        BrickBlock(159, 9),
+
+        BrickBlock(11, 1),
+        BrickBlock(11, 2),
+        BrickBlock(11, 3),
+        BrickBlock(11, 4),
+
+        BrickBlock(15, 1),
+        BrickBlock(15, 2),
+        BrickBlock(15, 3),
+        BrickBlock(15, 4),
+
+        BrickBlock(61, 1),
+        BrickBlock(61, 2),
+        BrickBlock(61, 3),
+        BrickBlock(61, 4),
+        BrickBlock(61, 5),
+        BrickBlock(61, 6),
+        BrickBlock(61, 7),
+
+        BrownBlock(139, 20),
+        BrownBlock(139, 21),
+        BrownBlock(139, 22),
+        BrownBlock(139, 23),
+        BrownBlock(139, 24),
+        BrownBlock(139, 25),
+        BrownBlock(139, 26),
+        BrownBlock(139, 27),
+        BrownBlock(139, 28),
+    ]
+
+    list_grs_copy = []
+
+    for i in list_grs:
+        No_Blocks_Down = True
+        for x in plats + list_blocks + list_grs:
+            if i.MakeSelfRect().bottom == x.MakeSelfRect().top and i.MakeSelfRect().left == x.MakeSelfRect().left:
+                No_Blocks_Down = False
+        if No_Blocks_Down:
+            for m in range((((700 - i.y_position) + b_size) // b_size)):
+                list_grs_copy.append(Ground(((i.x_position + b_size) // b_size), m))
+
+    list_grs = list_grs_copy + list_grs
+
+    list_grounds_decide = []
+    for i in list_grs:
+        grass_TF = True
+        for x in list_grs:
+            if i.MakeSelfRect().top == x.MakeSelfRect().bottom and i.MakeSelfRect().left == x.MakeSelfRect().left:
+                grass_TF = False
+        if grass_TF:
+            list_grounds_decide.append("grass")
+        else:
+            list_grounds_decide.append("ground")
+
+    # start_game_arrow = StartGame(2, 3, 1)
+    # start_game_stage = StartGame(2.4, 3, 2)
+    start_games = [
+        StartGame(2, 3, 1),
+        StartGame(2.4, 3, 2)
+    ]
+
+    end_games = [
+        EndGame(185, 2)
+    ]
+
+    spikes = [
+        Spike(21, 3),
+        Spike(21.5, 3),
+
+        Spike(28, 14),
+        Spike(28.5, 14),
+
+        Spike(39, 7, 1),
+        Spike(44, 7, 1),
+
+        Spike(50, 3),
+        Spike(50.5, 3),
+
+        Spike(58, 2, 1),
+
+        Spike(65, 2, 1),
+        Spike(66, 2, 1),
+        Spike(67, 2, 1),
+        Spike(68, 2, 1),
+        Spike(69, 2, 1),
+        Spike(70, 2, 1),
+
+        Spike(136, 2),
+        Spike(136.5, 2),
+
+        Spike(149, 8),
+        Spike(149.6, 8),
+        Spike(148, 8, 1),
+
+        # Spike(159, 9),
+        # Spike(159.5, 9),
+        # Spike(160, 9),
+        # Spike(160.5, 9),
+        # Spike(161, 9),
+        # Spike(161.5, 9),
+
+        Spike(162, 2, 1),
+
+        Spike(166, 2.5),
+        Spike(169, 2.5),
+        Spike(172, 2.5),
+        Spike(166.5, 2.5),
+        Spike(169.5, 2.5),
+        Spike(172.5, 2.5),
+
+        Spike(159, 10, 1),
+    ]
+
+    saws = [
+        Saw(29.5, 1.5, 3),
+        Saw(52.5, 0.5, 3),
+        Saw(137, 6, 3),
+        Saw(147, 2, 2),
+    ]
+
+    fires = [
+        Fire(40, 2),
+        Fire(41, 2),
+        Fire(42, 2),
+        Fire(43, 2),
+
+        Fire(161, 7),
+    ]
+
+    touch_objects = list_grs + plats + fires + list_blocks + end_games
+    touch_objects.append(start_games[1])
+
+def start_play_changeable():
+    global checkpoints
+    global fall_jump
+    global move_scene_x
+    global move_scene_y
+    global mode
+    global side
+    global check_ps
+    global player_1
+    global snakes
+    global mushrooms
+    global horses
+    global mummys
+    global fly_plats
+    global jump_pads
+    global expand_plats
+    global spiked_balls
+    global fruits
+    global coins
+    global boxes
+    global touch_objects
+    global apples, bananas, cherries, coins_not_list
+    global timer
+    global find_find_mode
+
+    # variables
+    # -------------------------
+    fall_jump = 0
+    move_scene_x = 0
+    move_scene_y = 0
+    mode = "fall"
+    side = "r"
+    checkpoints = 0
+    apples = -1
+    bananas = -1
+    cherries = -1
+    coins_not_list = -1
+    timer = Timer()
+    find_find_mode = None
+    # player_1.x_position = 123
+    # player_1.y_position = 532
+    # -------------------------
+
+    music.stop()
+    music.play(-1)
+
+    for i in touch_objects:
+        i.MakeSides()
+
+    timer.Start()
+
+    player_1 = Player(123, 532)
+
+    with MongoClient() as fl:
+        # new_fl = fl['Final_Project_DB']
+        if len(fl['Final_Project_DB'].list_collection_names()) > 0:
+            new_fl = fl['Final_Project_DB']
+
+            player_1.x_position = new_fl['Player'].find()[0]['x_position']
+            player_1.y_position = new_fl['Player'].find()[0]['y_position']
+            move_scene_x = new_fl['Player'].find()[0]['move_scene_x']
+            move_scene_y = new_fl['Player'].find()[0]['move_scene_y']
+            fall_jump = new_fl['Player'].find()[0]['fall_jump']
+            checkpoints = new_fl['Player'].find()[0]['checkpoints']
+            timer = Timer(new_fl['Player'].find()[0]['timer'])
+            timer.Start()
+            player_1.coins = new_fl['Player'].find()[0]['coins']
+            player_1.apples = new_fl['Player'].find()[0]['apples']
+            player_1.bananas = new_fl['Player'].find()[0]['bananas']
+            player_1.cherries = new_fl['Player'].find()[0]['cherries']
+
+            mushrooms = []
+            snakes = []
+            horses = []
+            mummys = []
+            for x in new_fl['Creatures'].find({'Type':'Mushroom'}):
+                mushrooms.append(Mushroom(x['x_position'], x['y_position'], x['position_2'], x['position_1'], x['side'], True))
+
+            for x in new_fl['Creatures'].find({'Type':'Snake'}):
+                snakes.append(Snake(x['x_position'], x['y_position'], x['position_2'], x['position_1'], x['side'], True))
+
+            for x in new_fl['Creatures'].find({'Type':'Horse'}):
+                horses.append(Horse(x['x_position'], x['y_position'], x['position_2'], x['position_1'], x['side'], True, x['lives']))
+
+            for x in new_fl['Creatures'].find({'Type':'Mummy'}):
+                mummys.append(Mummy(x['x_position'], x['y_position'], x['position_2'], x['position_1'], x['side'], True, x['lives']))
+
+            fruits = []
+            for x in new_fl['Fruits'].find():
+                fruits.append(Fruit(x['x_position'], x['y_position'], x['Type'], True))
+
+            coins = []
+            for x in new_fl['Coins'].find():
+                coins.append(Coin(x['x_position'], x['y_position'], True))
+
+            fly_plats = []
+            for x in new_fl['FlyPlats'].find():#(self, x_pos, y_pos, pos_2, fly, pos_1 = -1, work = objects_on, dir = -1, m = False)
+                fly_plats.append(FlyPlat(x['x_position'], x['y_position'], x['position_2'], x['Type'], x['position_1'], x['work'], x['direction'], True))
+
+            #(self, x_pos, y_pos, expand, i = b_size, work = objects_on, m = False)
+            expand_plats = []
+            for x in new_fl['ExpandPlats'].find():
+                expand_plats.append(ExpandPlat(x['x_position'], x['y_position'], x['stop_i'], x['i'], x['work'], True))
+
+            check_ps = []
+            for x in new_fl['Checkpoints'].find():
+                check_ps.append(Checkpoint(x['x_position'], x['y_position'], x['TF'], True))
+
+            spiked_balls = []
+            for x in new_fl['Spiked_Balls'].find():
+                spiked_balls.append(Spiked_Ball(x['x_position'], x['y_position'], x['gravity_pull'], x['fall'], True))
+
+            boxes = []
+            for x in new_fl['Boxes'].find():
+                boxes.append(Box(x['x_position'], x['y_position'], x['gravity_pull'], True))
+
+
+    # touch_objects += boxes
 
 def reset():
     global move_scene_x
@@ -2517,10 +4021,21 @@ def reset():
     global player_1
     global fall_jump
     if checkpoints == 0:
-        move_scene_x = 10000
+        # with MongoClient() as fl:
+        #     new_fl = fl['Final_Project_DB']['Player']
+        #     player_1.x_position = new_fl.find()[0]['x_position']
+        #     player_1.y_position = new_fl.find()[0]['y_position']
+        #     move_scene_x = new_fl.find()[0]['move_scene_x']
+        #     move_scene_y = new_fl.find()[0]['move_scene_y']
+        #     fall_jump = new_fl.find()[0]['fall_jump']
+        move_scene_x = 0
         move_scene_y = 0
-        player_1.x_position = 75
-        player_1.y_position = 550 - 1 - 400
+        player_1.x_position = 123
+        player_1.y_position = 532
+        # move_scene_x = 13000
+        # move_scene_y = 0
+        # player_1.x_position = 350
+        # player_1.y_position = 550 - 1 - 300
     if checkpoints == 1:
         move_scene_x = 4770
         move_scene_y = -288
@@ -2568,25 +4083,26 @@ def check_die():
         reset()
 
 def check_make_work():
-    if event.type == pygame.MOUSEBUTTONDOWN:
-        for x in jump_pads + fly_plats + expand_plats:
-            if not x.work:
-                if x.MakeSelfRect().collidepoint(event.pos):
+    if not game_paused:
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            for x in jump_pads + fly_plats + expand_plats:
+                if not x.work:
+                    if x.MakeSelfRect().collidepoint(event.pos):
 
-                    if x in jump_pads:
-                        if player_1.apples >= 1:
-                            player_1.apples -= 1
-                            x.work = True
+                        if x in jump_pads:
+                            if player_1.apples >= 1:
+                                player_1.apples -= 1
+                                x.work = True
 
-                    elif x in fly_plats:
-                        if player_1.bananas >= 1:
-                            player_1.bananas -= 1
-                            x.work = True
+                        elif x in fly_plats:
+                            if player_1.bananas >= 1:
+                                player_1.bananas -= 1
+                                x.work = True
 
-                    elif x in expand_plats:
-                        if player_1.cherries >= 1:
-                            player_1.cherries -= 1
-                            x.work = True
+                        elif x in expand_plats:
+                            if player_1.cherries >= 1:
+                                player_1.cherries -= 1
+                                x.work = True
 
 
     # for x in jump_pads:
@@ -2598,38 +4114,39 @@ def check_make_work():
     #                     x.work = True
 
 def init_all():
-    for x in snakes:
-        x.Move()
-    for x in mushrooms:
-        x.Move()
-    for x in horses:
-        x.ChangeDefault()
-        x.Move()
-        x.CheckMode()
-    for x in mummys:
-        x.ChangeDefault()
-        x.Move()
-        x.CheckMode()
+    if not game_paused:
+        for x in snakes:
+            x.Move()
+        for x in mushrooms:
+            x.Move()
+        for x in horses:
+            x.ChangeDefault()
+            x.Move()
+            x.CheckMode()
+        for x in mummys:
+            x.ChangeDefault()
+            x.Move()
+            x.CheckMode()
 
-    for x in fly_plats:
-        x.Move()
+        for x in fly_plats:
+            x.Move()
 
-    for x in jump_pads:
-        x.CheckJump()
-    for x in expand_plats:
-        x.CheckWork()
-    for x in spiked_balls:
-        x.CheckFall()
-    for x in fires:
-        x.CheckOn()
+        for x in jump_pads:
+            x.CheckJump()
+        for x in expand_plats:
+            x.CheckWork()
+        for x in spiked_balls:
+            x.CheckFall()
+        for x in fires:
+            x.CheckOn()
 
-    for x in check_ps:
-        x.CheckPoint()
-    for x in end_games:
-        x.CheckChange()
+        for x in check_ps:
+            x.CheckPoint()
+        for x in end_games:
+            x.CheckChange()
 
-    for x in boxes:
-        x.CheckFall()
+        for x in boxes:
+            x.CheckFall()
 
 def check_visible(x):
     surface_rect = x.MakeSelfRect()
@@ -2637,6 +4154,126 @@ def check_visible(x):
         return True
     else:
         return False
+
+def reset_database():
+    global mushrooms, snakes, horses, mummys, coins, fruits, fly_plats, spiked_balls, boxes, touch_objects#, original_snakes, original_mushrooms, original_horses, original_mummys
+    with MongoClient() as fl:
+        new_fl = fl['Final_Project_DB']
+
+        new_fl['Player'].drop()
+        new_fl['Player'].insert_one({
+            'x_position': 123,
+            'y_position': 532,
+            'move_scene_x': 0,
+            'move_scene_y': 0,
+            'fall_jump': 0,
+            'checkpoints':0,
+            'timer':0,
+            'coins': 0,
+            'apples': 0,
+            'bananas': 0,
+            'cherries': 0,
+        })
+
+        snakes = original_snakes
+        mushrooms = original_mushrooms
+        horses = original_horses
+        mummys = original_mummys
+
+        new_fl['Creatures'].drop()
+        for x in snakes + mushrooms + horses + mummys:
+            new_fl['Creatures'].insert_one({
+                'x_position': x.x_position,
+                'y_position': x.y_position,
+                'position_1': x.position_1,
+                'position_2': x.position_2,
+                'side': x.side,
+                'Type': "Snake" if isinstance(x, Snake)
+                else "Mushroom" if isinstance(x,Mushroom)
+                else "Horse" if isinstance(x, Horse)
+                else "Mummy",
+                'lives': x.lives if isinstance(x, Horse) or isinstance(x, Mummy) else 0
+            })
+
+        fruits = original_fruits
+        coins = original_coins
+
+        new_fl['Fruits'].drop()
+        for x in fruits:
+            new_fl['Fruits'].insert_one({
+                'x_position': x.x_position,
+                'y_position': x.y_position,
+                'Type': x.name
+            })
+
+        new_fl['Coins'].drop()
+        for x in coins:
+            new_fl['Coins'].insert_one({
+                'x_position': x.x_position,
+                'y_position': x.y_position,
+            })
+
+        fly_plats = original_fly_plats
+
+        new_fl['FlyPlats'].drop()
+        for x in fly_plats:
+            new_fl['FlyPlats'].insert_one({
+                'x_position': x.x_position,
+                'y_position': x.y_position,
+                'position_1': x.position_1,
+                'position_2': x.position_2,
+                'Type': x.fly,
+                'work': x.work,
+                'direction': x.direction
+            })
+
+        expand_plats = original_expand_plats
+
+        new_fl['ExpandPlats'].drop()
+        for x in expand_plats:
+            new_fl['ExpandPlats'].insert_one({
+                'x_position': x.x_position,
+                'y_position': x.y_position,
+                'stop_i': x.stop_i,
+                'i': x.i,
+                'work': x.work,
+            })
+
+
+        check_ps = original_check_ps
+
+        new_fl['Checkpoints'].drop()
+        for x in check_ps:
+            new_fl['Checkpoints'].insert_one({
+                'x_position': x.x_position,
+                'y_position': x.y_position,
+                'TF': x.checkpoint_TF,
+            })
+
+
+        spiked_balls = original_spiked_balls
+
+        new_fl['Spiked_Balls'].drop()
+        for x in spiked_balls:
+            new_fl['Spiked_Balls'].insert_one({
+                'x_position': x.x_position,
+                'y_position': x.y_position,
+                'gravity_pull': x.gravity_pull,
+                'fall': x.fall,
+            })
+
+        # copy = [i for i in touch_objects if i not in boxes]
+        # touch_objects = copy
+        # touch_objects += original_boxes
+        boxes = original_boxes
+
+        new_fl['Boxes'].drop()
+        for x in boxes:
+            new_fl['Boxes'].insert_one({
+                'x_position': x.x_position,
+                'y_position': x.y_position,
+                'gravity_pull': x.gravity_pull
+            })
 
 
 
@@ -2646,7 +4283,7 @@ blue_sky = pygame.image.load("Blue_Sky.webp")
 blue_sky = pygame.transform.rotozoom(blue_sky, 0, 6)
 blue_sky_rect = blue_sky.get_rect(center=(100, 100))
 
-orange_bck = pygame.image.load("Orange_Colour.png")
+orange_bck = pygame.image.load("Green_Colour")
 orange_bck = pygame.transform.rotozoom(orange_bck, 0, 1.5)
 orange_bck_rect = orange_bck.get_rect(topleft=(0, 0))
 
@@ -2655,12 +4292,20 @@ play_button = pygame.transform.rotozoom(play_button, 0, 0.1)
 play_button_rect = play_button.get_rect(center=(650, 250))
 
 go_back_button = pygame.image.load("Go_Back.png")
-go_back_button = pygame.transform.rotozoom(go_back_button, 0, 0.1)
+go_back_button = pygame.transform.scale(go_back_button, (30, 30))
 go_back_button_rect = go_back_button.get_rect(topright=(1300, 0))
 
 restart_button = pygame.image.load("Restart.png")
-restart_button = pygame.transform.rotozoom(restart_button, 0, 0.05)
-restart_button_rect = restart_button.get_rect(topleft=(0, 0))
+restart_button = pygame.transform.scale(restart_button, (30, 30))
+restart_button_rect = restart_button.get_rect(topright=(1270, 0))
+
+pause_button = pygame.image.load("Stop_Button.png")
+pause_button = pygame.transform.scale(pause_button, (30, 30))
+pause_button_rect = restart_button.get_rect(topleft=(0, 0))
+
+not_pause_button = pygame.image.load("Not_Stop_Button.png")
+not_pause_button = pygame.transform.scale(not_pause_button, (30, 30))
+not_pause_button_rect = restart_button.get_rect(topleft=(0, 0))
 
 apple = pygame.image.load("Apple.png")
 apple = pygame.transform.scale(apple, (30, 30))
@@ -2678,12 +4323,14 @@ coin_1 = pygame.image.load("coin.png")
 coin_1 = pygame.transform.scale(coin_1, (30, 30))
 coin_1_rect = coin_1.get_rect(topleft=(850, 5))
 
-coin_2 = pygame.transform.scale(coin_1, (50, 50))
-coin_2_rect = coin_2.get_rect(center=(745, 530))
+coin_menu = pygame.image.load("Coins_Menu.png")
+coin_menu = pygame.transform.scale(coin_menu, (60, 60))
+coin_menu_rect = coin_menu.get_rect(topleft=(0, 0))
 
 clock = pygame.time.Clock()
 while True:
-    start_play()
+    start_play_not_changeable()
+    start_play_changeable()
 
     while level == "menu":
         for event in pygame.event.get():
@@ -2692,60 +4339,143 @@ while True:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if play_button_rect.collidepoint(event.pos):
                     level = "level_1"
-                    start_play()
+                    reset_database()
+                    start_play_changeable()
 
-        screen.blit(orange_bck, orange_bck_rect)
-        screen.blit(play_button, play_button_rect)
-
-        text = pygame.font.Font(None, 75)
-
-        best_score_text = text.render(f"Best Score:", True, 'Black')
-        best_score_text_rect = best_score_text.get_rect(center=(650, 450))
-
-        screen.blit(best_score_text, best_score_text_rect)
-
-        best_score_num_text = text.render(f"{"0" if best_score[2] == 0 else best_score[2] / 1000} s", True, 'Black')
-        if best_score[2] == 0:
-            best_score_num_text = text.render("0s", True, 'Black')
-            best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 525))
-            screen.blit(best_score_num_text, best_score_num_text_rect)
-        else:
-            best_score_num_text = text.render(f"{best_score[0] / 1000}s -     {best_score[1]}", True, 'Black')
-            best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 530))
-            screen.blit(best_score_num_text, best_score_num_text_rect)
-
-            best_score_num_text = text.render(f"{best_score[2] / 1000}s", True, 'Black')
-            best_score_num_text_rect = best_score_num_text.get_rect(center=(650, 590))
-            screen.blit(best_score_num_text, best_score_num_text_rect)
-
-            screen.blit(coin_2, coin_2_rect)
+        blit_menu()
 
         pygame.display.update()
         clock.tick(60)
 
     while level == "level_1":
-        #print(move_scene_x, move_scene_y, player_1.x_position, player_1.y_position)
+        # print(move_scene_x, move_scene_y, player_1.x_position, player_1.y_position)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                with MongoClient() as fl:
+                    timer.End()
+                    new_fl = fl['Final_Project_DB']
+
+                    new_fl['Player'].drop()
+                    new_fl['Player'].insert_one({
+                        'x_position':player_1.x_position,
+                        'y_position':player_1.y_position,
+                        'move_scene_x':move_scene_x,
+                        'move_scene_y':move_scene_y,
+                        'fall_jump':fall_jump,
+                        'checkpoints':checkpoints,
+                        'timer': timer.Show(),
+                        'coins': player_1.coins,
+                        'apples': player_1.apples,
+                        'bananas': player_1.bananas,
+                        'cherries': player_1.cherries
+                    })
+
+                    new_fl['Creatures'].drop()
+                    for x in snakes + mushrooms + horses + mummys:
+                        new_fl['Creatures'].insert_one({
+                            'x_position': x.x_position,
+                            'y_position': x.y_position,
+                            'position_1': x.position_1,
+                            'position_2': x.position_2,
+                            'side': x.side,
+                            'Type': "Snake" if isinstance(x, Snake) else "Mushroom" if isinstance(x, Mushroom) else "Horse" if isinstance(x, Horse) else "Mummy",
+                            'lives': x.lives if isinstance(x, Horse) or isinstance(x, Mummy) else 0
+                        })
+
+                    new_fl['Fruits'].drop()
+                    for x in fruits:
+                        new_fl['Fruits'].insert_one({
+                            'x_position': x.x_position,
+                            'y_position': x.y_position,
+                            'Type': x.name
+                        })
+
+                    new_fl['Coins'].drop()
+                    for x in coins:
+                        new_fl['Coins'].insert_one({
+                            'x_position': x.x_position,
+                            'y_position': x.y_position,
+                        })
+
+                    new_fl['FlyPlats'].drop()
+                    for x in fly_plats:
+                        new_fl['FlyPlats'].insert_one({
+                            'x_position': x.x_position,
+                            'y_position': x.y_position,
+                            'position_1': x.position_1,
+                            'position_2': x.position_2,
+                            'Type': x.fly,
+                            'work': x.work,
+                            'direction': x.direction
+                        })
+
+                    #(self, x_pos, y_pos, expand, i = b_size, work = objects_on, m = False)
+                    new_fl['ExpandPlats'].drop()
+                    for x in expand_plats:
+                        new_fl['ExpandPlats'].insert_one({
+                            'x_position': x.x_position,
+                            'y_position': x.y_position,
+                            'stop_i': x.stop_i,
+                            'i': x.i,
+                            'work': x.work,
+                        })
+
+                    #(self, x_pos, y_pos, TF = False, m = False)
+                    new_fl['Checkpoints'].drop()
+                    for x in check_ps:
+                        new_fl['Checkpoints'].insert_one({
+                            'x_position': x.x_position,
+                            'y_position': x.y_position,
+                            'TF': x.checkpoint_TF,
+                        })
+
+                    #(self, x_pos, y_pos, gravity_pull = 0, fall = False, m = False)
+                    new_fl['Spiked_Balls'].drop()
+                    for x in spiked_balls:
+                        new_fl['Spiked_Balls'].insert_one({
+                            'x_position': x.x_position,
+                            'y_position': x.y_position,
+                            'gravity_pull': x.gravity_pull,
+                            'fall': x.fall,
+                        })
+
+                    new_fl['Boxes'].drop()
+                    for x in boxes:
+                        new_fl['Boxes'].insert_one({
+                            'x_position': x.x_position,
+                            'y_position': x.y_position,
+                            'gravity_pull': x.gravity_pull
+                        })
+
                 pygame.quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if go_back_button_rect.collidepoint(event.pos):
                     level = "menu"
+
                 if restart_button_rect.collidepoint(event.pos):
-                    start_play()
+                    reset_database()
+                    start_play_changeable()
+
+                if pause_button_rect.collidepoint(event.pos) and game_paused is False:
+                    game_paused = True
+                    timer.End()
+                elif not_pause_button_rect.collidepoint(event.pos) and game_paused is True:
+                    game_paused = False
+                    timer = Timer(timer.Show())
+                    timer.Start()
 
             check_make_work()
 
         init_all()
 
-        player_1.CheckFruitCoin()
-        player_1.CheckDieAnimal()
-
-        keys_pressed()
-        player_1.Change_Fall_Jump()
-        player_1.Transparency()
-        check_die()
-        blit()
+        if not game_paused:
+            player_1.CheckFruitCoin()
+            player_1.CheckDieAnimal()
+            keys_pressed()
+            player_1.Change_Fall_Jump()
+            player_1.Transparency()
+            check_die()
+        blit_level()
 
         pygame.display.update()
         clock.tick(60)
